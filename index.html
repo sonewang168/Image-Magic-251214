@@ -13561,6 +13561,17 @@
         }
         
         function setTool(tool) {
+            // Toggle 切換：再點一次取消
+            if (currentTool === tool) {
+                currentTool = null;
+                document.getElementById('selectBtn').classList.remove('active');
+                document.getElementById('mosaicBtn').classList.remove('active');
+                document.getElementById('arrowBtn').classList.remove('active');
+                canvas.style.cursor = 'default';
+                showToast('🔓 工具已取消');
+                return;
+            }
+            
             currentTool = tool;
             
             // 更新所有工具按鈕狀態
@@ -13572,9 +13583,9 @@
             
             // 顯示提示
             const tips = {
-                'select': '✂️ 拖曳選取區域',
-                'mosaic': '🔲 拖曳選取要打馬賽克的區域',
-                'arrow': '➡️ 拖曳畫箭頭'
+                'select': '✂️ 拖曳選取區域（再點一次取消）',
+                'mosaic': '🔲 拖曳打馬賽克（再點一次取消）',
+                'arrow': '➡️ 拖曳畫箭頭（再點一次取消）'
             };
             if (tips[tool]) {
                 showToast(tips[tool]);
@@ -13652,12 +13663,19 @@
         }
         
         function updateSelectionBox() {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = rect.width / canvas.width;
-            const scaleY = rect.height / canvas.height;
+            const container = document.getElementById('canvasContainer');
+            const containerRect = container.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
             
-            const x = Math.min(selectionStart.x, selectionEnd.x) * scaleX;
-            const y = Math.min(selectionStart.y, selectionEnd.y) * scaleY;
+            // 計算畫布在容器中的偏移
+            const offsetX = canvasRect.left - containerRect.left + container.scrollLeft;
+            const offsetY = canvasRect.top - containerRect.top + container.scrollTop;
+            
+            const scaleX = canvasRect.width / canvas.width;
+            const scaleY = canvasRect.height / canvas.height;
+            
+            const x = Math.min(selectionStart.x, selectionEnd.x) * scaleX + offsetX;
+            const y = Math.min(selectionStart.y, selectionEnd.y) * scaleY + offsetY;
             const w = Math.abs(selectionEnd.x - selectionStart.x) * scaleX;
             const h = Math.abs(selectionEnd.y - selectionStart.y) * scaleY;
             
