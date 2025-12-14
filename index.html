@@ -4219,6 +4219,7 @@
                 <button class="tool-btn" id="selectBtn" onclick="setTool('select')" disabled><span class="icon">✂️</span>選取</button>
                 <button class="tool-btn" id="clearBtn" onclick="clearSelection()" disabled><span class="icon">🧹</span>清除</button>
                 <button class="tool-btn" id="undoBtn" onclick="undoAction()" disabled><span class="icon">↩️</span>復原</button>
+                <button class="tool-btn" id="resetBtn" onclick="resetCanvas()" disabled><span class="icon">🗑️</span>重置</button>
                 <button class="tool-btn" id="aiBtn" onclick="showAIPanel()" disabled><span class="icon">🤖</span>AI</button>
                 <button class="tool-btn" id="pdfToolBtn" onclick="showPdfToolPanel()" style="display:none"><span class="icon">📑</span>拆分</button>
                 <button class="tool-btn" id="watermarkBtn" onclick="showWatermarkPanel()" disabled><span class="icon">💦</span>浮水印</button>
@@ -6308,7 +6309,7 @@
                 'selectBtn', 'clearBtn', 'aiBtn', 'watermarkBtn', 'mosaicBtn',
                 'stampBtn', 'signBtn', 'filterBtn', 'adjustBtn', 'frameBtn',
                 'stickerBtn', 'arrowBtn', 'rotateBtn', 'flipHBtn', 'flipVBtn',
-                'cropBtn', 'mergeBtn', 'qrBtn', 'compressBtn', 'undoBtn',
+                'cropBtn', 'mergeBtn', 'qrBtn', 'compressBtn', 'undoBtn', 'resetBtn',
                 'brushBtn', 'shapeBtn', 'textFxBtn', 'templateBtn', 'collageBtn',
                 'beautyBtn', 'removeBgBtn', 'batchBtn', 'effectBtn', 'overlayBtn',
                 'annotateBtn', 'measureBtn', 'gridBtn', 'historyBtn', 'infoBtn',
@@ -6988,6 +6989,46 @@
             canvas.height = prev.height;
             ctx.putImageData(prev.data, 0, 0);
             showToast('↩️ 已復原');
+        }
+        
+        // 重置畫布（清空重來）
+        function resetCanvas() {
+            if (!confirm('確定要清空畫布重新開始嗎？')) return;
+            
+            // 隱藏畫布
+            document.getElementById('canvasWrapper').classList.remove('show');
+            document.getElementById('uploadZone').classList.remove('hidden');
+            
+            // 清空畫布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // 重置狀態
+            historyStack = [];
+            currentSelection = null;
+            document.getElementById('selectionBox').style.display = 'none';
+            
+            // 重置 PDF
+            pdfDoc = null;
+            pdfPages = [];
+            currentPageNum = 1;
+            document.getElementById('pdfControls').style.display = 'none';
+            document.getElementById('pdfToolBtn').style.display = 'none';
+            
+            // 停用所有工具按鈕
+            const btns = ['selectBtn', 'clearBtn', 'undoBtn', 'resetBtn', 'aiBtn', 'watermarkBtn', 
+                'mosaicBtn', 'stampBtn', 'signBtn', 'filterBtn', 'adjustBtn', 'frameBtn', 
+                'stickerBtn', 'arrowBtn', 'rotateBtn', 'flipHBtn', 'flipVBtn', 'cropBtn', 
+                'mergeBtn', 'qrBtn', 'compressBtn', 'brushBtn', 'shapeBtn', 'textFxBtn',
+                'templateBtn', 'collageBtn', 'beautyBtn', 'removeBgBtn', 'batchBtn', 
+                'effectBtn', 'overlayBtn', 'annotateBtn', 'historyBtn', 'infoBtn'];
+            btns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = true;
+            });
+            
+            showToast('🗑️ 已清空，請重新上傳圖片');
         }
         
         // ===== 馬賽克功能 =====
