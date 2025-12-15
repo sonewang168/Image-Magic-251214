@@ -4160,6 +4160,35 @@
             cursor: pointer;
             margin-top: 10px;
         }
+        .clear-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .toggle-pwd-btn {
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .test-line-btn {
+            flex: 1;
+            padding: 10px;
+            background: linear-gradient(135deg, #00C300, #00a000);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
         
         /* ===== Toast ===== */
         #toast {
@@ -5940,12 +5969,18 @@
                     <div class="settings-title">🤖 AI 解析設定</div>
                     <div class="setting-item">
                         <label>💎 Gemini API Key</label>
-                        <input type="password" id="geminiApiKey" placeholder="AIza...">
+                        <div style="display:flex;gap:5px;">
+                            <input type="password" id="geminiApiKey" placeholder="AIza..." style="flex:1;">
+                            <button class="toggle-pwd-btn" onclick="togglePassword('geminiApiKey', this)">👁️</button>
+                        </div>
                         <small style="color:var(--text-secondary);font-size:10px;">從 <a href="https://aistudio.google.com/" target="_blank" style="color:var(--secondary);">Google AI Studio</a> 免費取得</small>
                     </div>
                     <div class="setting-item">
                         <label>⚡ Groq API Key</label>
-                        <input type="password" id="groqApiKey" placeholder="gsk_...">
+                        <div style="display:flex;gap:5px;">
+                            <input type="password" id="groqApiKey" placeholder="gsk_..." style="flex:1;">
+                            <button class="toggle-pwd-btn" onclick="togglePassword('groqApiKey', this)">👁️</button>
+                        </div>
                         <small style="color:var(--text-secondary);font-size:10px;">從 <a href="https://console.groq.com/" target="_blank" style="color:var(--secondary);">Groq Console</a> 免費取得</small>
                     </div>
                 </div>
@@ -5954,17 +5989,29 @@
                     <div class="settings-title">💬 LINE 推播設定（Messaging API）</div>
                     <div class="setting-item">
                         <label>GAS 部署 URL</label>
-                        <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec">
+                        <div style="display:flex;gap:5px;">
+                            <input type="password" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;">
+                            <button class="toggle-pwd-btn" onclick="togglePassword('gasUrl', this)">👁️</button>
+                        </div>
                         <small style="color:var(--text-secondary);font-size:10px;">部署 Google Apps Script 後取得的網址</small>
                     </div>
                     <div class="setting-item">
                         <label>LINE User ID</label>
-                        <input type="text" id="lineUserId" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                        <div style="display:flex;gap:5px;">
+                            <input type="password" id="lineUserId" placeholder="Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" style="flex:1;">
+                            <button class="toggle-pwd-btn" onclick="togglePassword('lineUserId', this)">👁️</button>
+                        </div>
                         <small style="color:var(--text-secondary);font-size:10px;">33 字元，以 U 開頭。加入 Bot 後輸入「ID」可取得</small>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:10px;">
+                        <button class="test-line-btn" onclick="testLineNotify()">🧪 測試 LINE 通知</button>
                     </div>
                 </div>
                 
-                <button class="save-btn" onclick="saveSettings()">💾 儲存所有設定</button>
+                <div style="display:flex;gap:10px;margin-top:15px;">
+                    <button class="save-btn" onclick="saveSettings()" style="flex:1;">💾 儲存設定</button>
+                    <button class="clear-btn" onclick="clearSettings()">🗑️ 清除</button>
+                </div>
                 
                 <div class="settings-section" style="margin-top:15px;">
                     <div class="settings-title">📖 LINE Messaging API 設定教學</div>
@@ -13738,6 +13785,8 @@
                 return;
             }
             
+            saveHistory(); // 儲存歷史供復原
+            
             const bgColor = document.getElementById('bgColor').value;
             ctx.fillStyle = bgColor;
             ctx.fillRect(currentSelection.x, currentSelection.y, currentSelection.w, currentSelection.h);
@@ -14000,6 +14049,59 @@
             settings.groqApiKey = document.getElementById('groqApiKey').value.trim();
             localStorage.setItem('imageMagicSettings', JSON.stringify(settings));
             showToast('💾 設定已儲存！');
+        }
+        
+        function clearSettings() {
+            if (!confirm('確定要清除所有設定嗎？')) return;
+            settings = { gasUrl: '', lineUserId: '', geminiApiKey: '', groqApiKey: '' };
+            document.getElementById('gasUrl').value = '';
+            document.getElementById('lineUserId').value = '';
+            document.getElementById('geminiApiKey').value = '';
+            document.getElementById('groqApiKey').value = '';
+            localStorage.removeItem('imageMagicSettings');
+            showToast('🗑️ 設定已清除！');
+        }
+        
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+        
+        async function testLineNotify() {
+            // 先取得當前輸入值
+            const gasUrl = document.getElementById('gasUrl').value.trim();
+            const lineUserId = document.getElementById('lineUserId').value.trim();
+            
+            if (!gasUrl) {
+                showToast('⚠️ 請先填寫 GAS 部署 URL');
+                return;
+            }
+            
+            showToast('📡 正在測試 LINE 連線...');
+            
+            try {
+                const payload = { action: 'testNotify' };
+                if (lineUserId) {
+                    payload.userId = lineUserId;
+                }
+                
+                const response = await fetch(gasUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    mode: 'no-cors'
+                });
+                
+                showToast('✅ 測試訊息已發送，請檢查 LINE！');
+            } catch (error) {
+                showToast('❌ 測試失敗：' + error.message);
+            }
         }
         
         // ===== Toast =====
