@@ -4848,14 +4848,8 @@
                             <input type="range" id="stampAngle" min="-45" max="45" value="-15">
                         </div>
                     </div>
-                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
-                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                            <input type="checkbox" id="stampDragMode" style="width:18px;height:18px;">
-                            <span>👆 自由放置模式（點擊畫布選擇位置）</span>
-                        </label>
-                    </div>
                     <div class="wm-position" style="margin-top:10px;" id="stampPositionGrid">
-                        <label>固定位置：</label>
+                        <label>初始位置：</label>
                         <div class="position-grid">
                             <button class="pos-btn" onclick="setStampPosition('top-left', this)">↖</button>
                             <button class="pos-btn" onclick="setStampPosition('top-center', this)">↑</button>
@@ -4883,14 +4877,8 @@
                             <input type="color" id="signColor" value="#000000">
                         </div>
                     </div>
-                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
-                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                            <input type="checkbox" id="signDragMode" style="width:18px;height:18px;">
-                            <span>👆 自由放置模式（點擊畫布選擇位置）</span>
-                        </label>
-                    </div>
                     <div class="wm-position" style="margin-top:10px;" id="signPositionGrid">
-                        <label>固定位置：</label>
+                        <label>初始位置：</label>
                         <div class="position-grid">
                             <button class="pos-btn" onclick="setSignPosition('top-left', this)">↖</button>
                             <button class="pos-btn" onclick="setSignPosition('top-center', this)">↑</button>
@@ -5006,14 +4994,8 @@
                             <input type="range" id="stickerSize" min="30" max="200" value="80">
                         </div>
                     </div>
-                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
-                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                            <input type="checkbox" id="stickerDragMode" style="width:18px;height:18px;">
-                            <span>👆 自由放置模式（點擊畫布選擇位置）</span>
-                        </label>
-                    </div>
                     <div class="wm-position" style="margin-top:10px;" id="stickerPositionGrid">
-                        <label>固定位置：</label>
+                        <label>初始位置：</label>
                         <div class="position-grid">
                             <button class="pos-btn" onclick="setStickerPosition('top-left', this)">↖</button>
                             <button class="pos-btn" onclick="setStickerPosition('top-center', this)">↑</button>
@@ -5126,14 +5108,8 @@
                     </div>
                     <div id="qrPreview" class="qr-preview"></div>
                     <button class="wm-action-btn add" onclick="generateQR()">📱 生成 QR Code</button>
-                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
-                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                            <input type="checkbox" id="qrDragMode" style="width:18px;height:18px;">
-                            <span>👆 自由放置模式</span>
-                        </label>
-                    </div>
                     <div class="wm-position" style="margin-top:10px;">
-                        <label>固定位置：</label>
+                        <label>初始位置：</label>
                         <div class="position-grid">
                             <button class="pos-btn" onclick="setQRPosition('top-left', this)">↖</button>
                             <button class="pos-btn" onclick="setQRPosition('top-center', this)">↑</button>
@@ -5147,6 +5123,7 @@
                         </div>
                     </div>
                     <button class="wm-action-btn remove" onclick="placeQR()">📍 放置到圖片</button>
+                    <button class="wm-action-btn" onclick="cancelQRPlacement()" style="margin-top:10px;background:var(--bg-input);">❌ 取消放置</button>
                 </div>
                 
                 <!-- 壓縮面板 -->
@@ -5278,14 +5255,8 @@
                             <input type="color" id="fxColor2" value="#0000ff">
                         </div>
                     </div>
-                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
-                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                            <input type="checkbox" id="textFxDragMode" style="width:18px;height:18px;">
-                            <span>👆 自由放置模式</span>
-                        </label>
-                    </div>
                     <div class="wm-position" style="margin-top:10px;">
-                        <label>固定位置：</label>
+                        <label>初始位置：</label>
                         <div class="position-grid">
                             <button class="pos-btn" onclick="setTextFxPosition('top-left', this)">↖</button>
                             <button class="pos-btn" onclick="setTextFxPosition('top-center', this)">↑</button>
@@ -5298,6 +5269,7 @@
                             <button class="pos-btn" onclick="setTextFxPosition('bottom-right', this)">↘</button>
                         </div>
                     </div>
+                    <button class="wm-action-btn" onclick="cancelTextFxPlacement()" style="margin-top:10px;background:var(--bg-input);">❌ 取消放置</button>
                 </div>
                 
                 <!-- 模板面板 -->
@@ -6442,6 +6414,11 @@
         let quickTextPosition = 'center';
         let settings = { gasUrl: '', lineUserId: '', geminiApiKey: '', groqApiKey: '' };
         let aiResultText = '';
+        
+        // 拖曳系統變數（提前定義）
+        let currentDragObject = null;
+        let dragOffsetX = 0, dragOffsetY = 0;
+        let isDraggingObject = false;
         
         // ===== 節慶設定 =====
         const festivals = {
@@ -7724,11 +7701,10 @@
         }
         
         function cancelStampPlacement() {
-            if (stampDragMode || pendingStamp) {
-                pendingStamp = null;
-                stampDragMode = false;
-                canvas.style.cursor = 'default';
-                showToast('❌ 圖章放置已取消');
+            // 取消任何拖曳中的物件
+            if (currentDragObject) {
+                removeDragObject();
+                showToast('❌ 放置已取消');
             }
         }
         
@@ -7823,11 +7799,10 @@
         }
         
         function cancelSignPlacement() {
-            if (signDragMode || pendingSign) {
-                pendingSign = null;
-                signDragMode = false;
-                canvas.style.cursor = 'default';
-                showToast('❌ 簽名放置已取消');
+            // 取消任何拖曳中的物件
+            if (currentDragObject) {
+                removeDragObject();
+                showToast('❌ 放置已取消');
             }
         }
         
@@ -8228,18 +8203,14 @@
         }
         
         function cancelStickerPlacement() {
-            if (stickerDragMode || pendingSticker) {
-                pendingSticker = null;
-                stickerDragMode = false;
-                canvas.style.cursor = 'default';
-                showToast('❌ 貼圖放置已取消');
+            // 取消任何拖曳中的物件
+            if (currentDragObject) {
+                removeDragObject();
+                showToast('❌ 放置已取消');
             }
         }
         
         // ===== 拖曳放置系統 =====
-        let currentDragObject = null;
-        let dragOffsetX = 0, dragOffsetY = 0;
-        let isDraggingObject = false;
         
         // 根據九宮格位置計算座標
         function getPositionCoords(position, objWidth, objHeight, canvasW, canvasH) {
@@ -8673,7 +8644,10 @@
                 dragLayer.innerHTML = '';
             }
             currentDragObject = null;
-            document.getElementById('dragControls').classList.remove('show');
+            const dragControls = document.getElementById('dragControls');
+            if (dragControls) {
+                dragControls.classList.remove('show');
+            }
         }
         
         // ===== 旋轉翻轉 =====
@@ -8929,6 +8903,14 @@
             canvas.style.cursor = 'default';
         }
         
+        function cancelQRPlacement() {
+            // 取消任何拖曳中的物件
+            if (currentDragObject) {
+                removeDragObject();
+                showToast('❌ 放置已取消');
+            }
+        }
+        
         // ===== 壓縮功能 =====
         function showCompressPanel() {
             togglePanel('compressPanel', 'compressBtn');
@@ -9082,11 +9064,12 @@
             const panel = document.getElementById('arrowPanel');
             const isShowing = panel.classList.contains('show');
             
-            // 如果正在關閉面板，同時取消箭頭工具
+            // Toggle: 如果面板已開且工具為 arrow，則取消
             if (isShowing && currentTool === 'arrow') {
                 currentTool = null;
                 document.getElementById('arrowBtn').classList.remove('active');
                 canvas.style.cursor = 'default';
+                showToast('🔓 箭頭工具已取消');
             }
             
             togglePanel('arrowPanel', 'arrowBtn');
@@ -9117,8 +9100,20 @@
         let lastX = 0, lastY = 0;
         
         function showBrushPanel() {
+            const panel = document.getElementById('brushPanel');
+            const isShowing = panel.classList.contains('show');
+            
+            // Toggle: 如果面板已開且工具為 brush，則取消
+            if (isShowing && currentTool === 'brush') {
+                currentTool = null;
+                document.getElementById('brushBtn').classList.remove('active');
+                canvas.style.cursor = 'default';
+                showToast('🔓 畫筆工具已取消');
+            } else if (!isShowing) {
+                setTool('brush');
+            }
+            
             togglePanel('brushPanel', 'brushBtn');
-            setTool('brush');
         }
         
         function setBrushType(type) {
@@ -9135,8 +9130,20 @@
         let currentShape = 'rect';
         
         function showShapePanel() {
+            const panel = document.getElementById('shapePanel');
+            const isShowing = panel.classList.contains('show');
+            
+            // Toggle: 如果面板已開且工具為 shape，則取消
+            if (isShowing && currentTool === 'shape') {
+                currentTool = null;
+                document.getElementById('shapeBtn').classList.remove('active');
+                canvas.style.cursor = 'default';
+                showToast('🔓 形狀工具已取消');
+            } else if (!isShowing) {
+                setTool('shape');
+            }
+            
             togglePanel('shapePanel', 'shapeBtn');
-            setTool('shape');
         }
         
         function setShapeType(type) {
@@ -9264,6 +9271,14 @@
             pendingTextFx = null;
             textFxDragMode = false;
             canvas.style.cursor = 'default';
+        }
+        
+        function cancelTextFxPlacement() {
+            // 取消任何拖曳中的物件
+            if (currentDragObject) {
+                removeDragObject();
+                showToast('❌ 放置已取消');
+            }
         }
         
         // ===== 模板功能 =====
