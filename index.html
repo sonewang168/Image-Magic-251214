@@ -366,6 +366,8 @@
             margin-bottom: 10px;
             font-size: 12px;
             color: var(--text-secondary);
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .canvas-info-bar span {
             display: flex;
@@ -382,6 +384,28 @@
         }
         #zoomInfo:hover { background: var(--bg-input); }
         #zoomInfo::before { content: '🔍 '; }
+        .canvas-quick-tools {
+            display: flex;
+            gap: 5px;
+        }
+        .quick-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .quick-btn:hover { background: var(--primary); transform: scale(1.05); }
+        .quick-btn:active { transform: scale(0.95); }
+        .quick-btn.active { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .quick-btn.danger:hover { background: #ef4444; }
         .zoom-controls {
             display: flex;
             align-items: center;
@@ -4508,6 +4532,12 @@
                 <div class="canvas-wrapper" id="canvasWrapper">
                     <div class="canvas-info-bar">
                         <span id="canvasInfo">0 x 0</span>
+                        <div class="canvas-quick-tools">
+                            <button class="quick-btn" id="selectBtn2" onclick="setTool('select')" title="選取">✂️</button>
+                            <button class="quick-btn" id="clearBtn2" onclick="clearSelection()" title="清除選取">🧹</button>
+                            <button class="quick-btn" id="undoBtn2" onclick="undoAction()" title="復原">↩️</button>
+                            <button class="quick-btn danger" id="resetBtn2" onclick="resetCanvas()" title="重置">🗑️</button>
+                        </div>
                         <div class="zoom-controls">
                             <button class="zoom-btn" onclick="zoomCanvas(-0.1)" title="縮小">➖</button>
                             <span id="zoomInfo" onclick="resetZoom()" title="點擊重置">100%</span>
@@ -5056,7 +5086,7 @@
                     <div class="brush-options">
                         <div class="wm-option">
                             <label>大小</label>
-                            <input type="range" id="brushSize" min="1" max="50" value="5">
+                            <input type="range" id="brushSize" min="1" max="50" value="5" oninput="document.getElementById('brushSizeVal').textContent=this.value">
                             <span id="brushSizeVal">5</span>
                         </div>
                         <div class="wm-option">
@@ -6590,8 +6620,11 @@
                 if (currentTool) {
                     currentTool = null;
                     document.getElementById('selectBtn')?.classList.remove('active');
+                    document.getElementById('selectBtn2')?.classList.remove('active');
                     document.getElementById('mosaicBtn')?.classList.remove('active');
                     document.getElementById('arrowBtn')?.classList.remove('active');
+                    document.getElementById('brushBtn')?.classList.remove('active');
+                    document.getElementById('shapeBtn')?.classList.remove('active');
                     cancelled = true;
                 }
                 
@@ -14382,6 +14415,9 @@
                 document.getElementById('selectBtn').classList.remove('active');
                 document.getElementById('mosaicBtn').classList.remove('active');
                 document.getElementById('arrowBtn').classList.remove('active');
+                document.getElementById('brushBtn').classList.remove('active');
+                document.getElementById('shapeBtn').classList.remove('active');
+                document.getElementById('selectBtn2')?.classList.remove('active');
                 canvas.style.cursor = 'default';
                 showToast('🔓 工具已取消');
                 return;
@@ -14391,16 +14427,22 @@
             
             // 更新所有工具按鈕狀態
             document.getElementById('selectBtn').classList.toggle('active', tool === 'select');
+            document.getElementById('selectBtn2')?.classList.toggle('active', tool === 'select');
             document.getElementById('mosaicBtn').classList.toggle('active', tool === 'mosaic');
             document.getElementById('arrowBtn').classList.toggle('active', tool === 'arrow');
+            document.getElementById('brushBtn').classList.toggle('active', tool === 'brush');
+            document.getElementById('shapeBtn').classList.toggle('active', tool === 'shape');
             
-            canvas.style.cursor = (tool === 'select' || tool === 'mosaic' || tool === 'arrow') ? 'crosshair' : 'default';
+            const cursorTools = ['select', 'mosaic', 'arrow', 'brush', 'shape'];
+            canvas.style.cursor = cursorTools.includes(tool) ? 'crosshair' : 'default';
             
             // 顯示提示
             const tips = {
                 'select': '✂️ 拖曳選取區域（再點一次取消）',
                 'mosaic': '🔲 拖曳打馬賽克（再點一次取消）',
-                'arrow': '➡️ 拖曳畫箭頭（再點一次取消）'
+                'arrow': '➡️ 拖曳畫箭頭（再點一次取消）',
+                'brush': '🖌️ 在畫布上繪製（再點一次取消）',
+                'shape': '⭕ 拖曳繪製形狀（再點一次取消）'
             };
             if (tips[tool]) {
                 showToast(tips[tool]);
@@ -14413,12 +14455,29 @@
         }
         
         function startSelection(e) {
-            if (currentTool !== 'select' && currentTool !== 'mosaic' && currentTool !== 'arrow' && !eyedropperTarget) return;
-            
             const coords = getCanvasCoords(e);
             
+            // 吸色器
             if (eyedropperTarget) {
                 pickColor(coords);
+                return;
+            }
+            
+            // 畫筆工具
+            if (currentTool === 'brush') {
+                isDrawing = true;
+                lastX = coords.x;
+                lastY = coords.y;
+                saveHistory();
+                return;
+            }
+            
+            // 形狀工具
+            if (currentTool === 'shape') {
+                isSelecting = true;
+                selectionStart = coords;
+                selectionEnd = coords;
+                saveHistory();
                 return;
             }
             
@@ -14427,6 +14486,9 @@
                 arrowStart = coords;
                 return;
             }
+            
+            // 其他工具需要 select 或 mosaic
+            if (currentTool !== 'select' && currentTool !== 'mosaic') return;
             
             isSelecting = true;
             selectionStart = coords;
@@ -14438,15 +14500,51 @@
         }
         
         function updateSelection(e) {
+            const coords = getCanvasCoords(e);
+            
+            // 畫筆繪製
+            if (currentTool === 'brush' && isDrawing) {
+                drawBrushStroke(lastX, lastY, coords.x, coords.y);
+                lastX = coords.x;
+                lastY = coords.y;
+                return;
+            }
+            
+            // 形狀預覽（可選）
+            if (currentTool === 'shape' && isSelecting) {
+                selectionEnd = coords;
+                return;
+            }
+            
             if (!isSelecting) return;
-            selectionEnd = getCanvasCoords(e);
+            selectionEnd = coords;
             updateSelectionBox();
         }
         
         function endSelection(e) {
+            const coords = getCanvasCoords(e);
+            
+            // 畫筆結束
+            if (currentTool === 'brush' && isDrawing) {
+                isDrawing = false;
+                return;
+            }
+            
+            // 形狀繪製
+            if (currentTool === 'shape' && isSelecting) {
+                isSelecting = false;
+                const x = Math.min(selectionStart.x, coords.x);
+                const y = Math.min(selectionStart.y, coords.y);
+                const w = Math.abs(coords.x - selectionStart.x);
+                const h = Math.abs(coords.y - selectionStart.y);
+                if (w > 5 || h > 5) {
+                    drawShape(x, y, w, h);
+                }
+                return;
+            }
+            
             // 處理箭頭
             if (currentTool === 'arrow' && arrowStart) {
-                const coords = getCanvasCoords(e);
                 if (Math.abs(coords.x - arrowStart.x) > 10 || Math.abs(coords.y - arrowStart.y) > 10) {
                     drawArrow(arrowStart.x, arrowStart.y, coords.x, coords.y);
                 }
@@ -14475,6 +14573,71 @@
                 currentSelection = null;
                 document.getElementById('selectionBox').style.display = 'none';
             }
+        }
+        
+        // 畫筆繪製
+        function drawBrushStroke(x1, y1, x2, y2) {
+            const size = parseInt(document.getElementById('brushSize').value);
+            const opacity = parseFloat(document.getElementById('brushOpacity').value);
+            const color = document.getElementById('brushColor').value;
+            
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            switch(currentBrush) {
+                case 'pen':
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = size;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'marker':
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = size * 2;
+                    ctx.globalAlpha = opacity * 0.7;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'highlighter':
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = size * 3;
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'spray':
+                    ctx.fillStyle = color;
+                    for (let i = 0; i < 20; i++) {
+                        const offsetX = (Math.random() - 0.5) * size * 2;
+                        const offsetY = (Math.random() - 0.5) * size * 2;
+                        ctx.fillRect(x2 + offsetX, y2 + offsetY, 1, 1);
+                    }
+                    break;
+                    
+                case 'eraser':
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.strokeStyle = 'rgba(0,0,0,1)';
+                    ctx.lineWidth = size * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    ctx.globalCompositeOperation = 'source-over';
+                    break;
+            }
+            
+            ctx.restore();
         }
         
         function updateSelectionBox() {
