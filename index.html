@@ -443,6 +443,86 @@
             display: none;
         }
         
+        /* 拖曳圖層 */
+        .drag-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .drag-object {
+            position: absolute;
+            cursor: move;
+            pointer-events: auto;
+            border: 2px dashed var(--primary);
+            border-radius: 4px;
+            background: rgba(99, 102, 241, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: dragPulse 1.5s infinite;
+        }
+        .drag-object:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--primary);
+        }
+        .drag-object.dragging {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+        .drag-object img {
+            max-width: 100%;
+            max-height: 100%;
+            pointer-events: none;
+        }
+        .drag-object-text {
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        @keyframes dragPulse {
+            0%, 100% { border-color: var(--primary); }
+            50% { border-color: var(--accent); }
+        }
+        .drag-controls {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .drag-controls.show { display: flex; }
+        .drag-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .drag-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .drag-btn.confirm {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+        }
+        .drag-btn.cancel {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+        .drag-btn:hover { transform: scale(1.05); }
+        .drag-btn:active { transform: scale(0.95); }
+        
         /* ===== AI 分析面板 ===== */
         .ai-panel {
             display: none;
@@ -4547,7 +4627,13 @@
                     </div>
                     <div class="canvas-container" id="canvasContainer">
                         <canvas id="mainCanvas"></canvas>
+                        <div class="drag-layer" id="dragLayer"></div>
                         <div class="selection-box" id="selectionBox"></div>
+                    </div>
+                    <div class="drag-controls" id="dragControls">
+                        <span class="drag-hint">🎯 拖曳調整位置</span>
+                        <button class="drag-btn confirm" onclick="confirmDragObject()">✅ 確認</button>
+                        <button class="drag-btn cancel" onclick="cancelDragObject()">❌ 取消</button>
                     </div>
                     <div class="zoom-hint">💡 雙指縮放 | 滾輪縮放 | 雙擊重置</div>
                 </div>
@@ -5040,6 +5126,26 @@
                     </div>
                     <div id="qrPreview" class="qr-preview"></div>
                     <button class="wm-action-btn add" onclick="generateQR()">📱 生成 QR Code</button>
+                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="qrDragMode" style="width:18px;height:18px;">
+                            <span>👆 自由放置模式</span>
+                        </label>
+                    </div>
+                    <div class="wm-position" style="margin-top:10px;">
+                        <label>固定位置：</label>
+                        <div class="position-grid">
+                            <button class="pos-btn" onclick="setQRPosition('top-left', this)">↖</button>
+                            <button class="pos-btn" onclick="setQRPosition('top-center', this)">↑</button>
+                            <button class="pos-btn" onclick="setQRPosition('top-right', this)">↗</button>
+                            <button class="pos-btn" onclick="setQRPosition('middle-left', this)">←</button>
+                            <button class="pos-btn" onclick="setQRPosition('center', this)">⬤</button>
+                            <button class="pos-btn" onclick="setQRPosition('middle-right', this)">→</button>
+                            <button class="pos-btn" onclick="setQRPosition('bottom-left', this)">↙</button>
+                            <button class="pos-btn" onclick="setQRPosition('bottom-center', this)">↓</button>
+                            <button class="pos-btn active" onclick="setQRPosition('bottom-right', this)">↘</button>
+                        </div>
+                    </div>
                     <button class="wm-action-btn remove" onclick="placeQR()">📍 放置到圖片</button>
                 </div>
                 
@@ -5170,6 +5276,26 @@
                         <div class="wm-option">
                             <label>副色</label>
                             <input type="color" id="fxColor2" value="#0000ff">
+                        </div>
+                    </div>
+                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="textFxDragMode" style="width:18px;height:18px;">
+                            <span>👆 自由放置模式</span>
+                        </label>
+                    </div>
+                    <div class="wm-position" style="margin-top:10px;">
+                        <label>固定位置：</label>
+                        <div class="position-grid">
+                            <button class="pos-btn" onclick="setTextFxPosition('top-left', this)">↖</button>
+                            <button class="pos-btn" onclick="setTextFxPosition('top-center', this)">↑</button>
+                            <button class="pos-btn" onclick="setTextFxPosition('top-right', this)">↗</button>
+                            <button class="pos-btn" onclick="setTextFxPosition('middle-left', this)">←</button>
+                            <button class="pos-btn active" onclick="setTextFxPosition('center', this)">⬤</button>
+                            <button class="pos-btn" onclick="setTextFxPosition('middle-right', this)">→</button>
+                            <button class="pos-btn" onclick="setTextFxPosition('bottom-left', this)">↙</button>
+                            <button class="pos-btn" onclick="setTextFxPosition('bottom-center', this)">↓</button>
+                            <button class="pos-btn" onclick="setTextFxPosition('bottom-right', this)">↘</button>
                         </div>
                     </div>
                 </div>
@@ -6121,23 +6247,23 @@
                 <!-- 文字編輯面板 -->
                 <div class="text-panel" id="textPanel">
                     <div class="panel-title">✍️ 文字編輯</div>
-                    <textarea class="text-input-area" id="textInput" placeholder="輸入新文字...&#10;按 Enter 應用，Shift+Enter 換行"></textarea>
+                    <textarea class="text-input-area" id="textInput" placeholder="輸入文字..."></textarea>
                     <div class="text-options">
                         <div class="option-group">
                             <label>大小</label>
-                            <input type="number" id="fontSize" value="16" min="8" max="72">
+                            <input type="number" id="fontSize" value="24" min="8" max="200">
                         </div>
                         <div class="option-group">
                             <label>文字色</label>
                             <div class="color-picker-wrapper">
-                                <input type="color" id="textColor" value="#000000">
+                                <input type="color" id="textColor" value="#ffffff">
                                 <button class="eyedropper-btn" id="textEyedropper" onclick="startEyedropper('text')" title="吸取顏色">💧</button>
                             </div>
                         </div>
                         <div class="option-group">
                             <label>背景色</label>
                             <div class="color-picker-wrapper">
-                                <input type="color" id="bgColor" value="#ffffff">
+                                <input type="color" id="bgColor" value="#000000">
                                 <button class="eyedropper-btn" id="bgEyedropper" onclick="startEyedropper('bg')" title="吸取顏色">💧</button>
                             </div>
                         </div>
@@ -6150,10 +6276,25 @@
                         <button class="style-btn" onclick="setAlign('center')">⬛</button>
                         <button class="style-btn" onclick="setAlign('right')">➡️</button>
                     </div>
-                    <div class="action-buttons">
-                        <button class="action-btn danger" onclick="clearSelection()">🧹 清除選取</button>
-                        <button class="action-btn primary" onclick="applyText()">✅ 應用文字</button>
+                    <div class="wm-position" style="margin-top:10px;">
+                        <label>初始位置：</label>
+                        <div class="position-grid">
+                            <button class="pos-btn" onclick="setQuickTextPosition('top-left', this)">↖</button>
+                            <button class="pos-btn" onclick="setQuickTextPosition('top-center', this)">↑</button>
+                            <button class="pos-btn" onclick="setQuickTextPosition('top-right', this)">↗</button>
+                            <button class="pos-btn" onclick="setQuickTextPosition('middle-left', this)">←</button>
+                            <button class="pos-btn active" onclick="setQuickTextPosition('center', this)">⬤</button>
+                            <button class="pos-btn" onclick="setQuickTextPosition('middle-right', this)">→</button>
+                            <button class="pos-btn" onclick="setQuickTextPosition('bottom-left', this)">↙</button>
+                            <button class="pos-btn" onclick="setQuickTextPosition('bottom-center', this)">↓</button>
+                            <button class="pos-btn" onclick="setQuickTextPosition('bottom-right', this)">↘</button>
+                        </div>
                     </div>
+                    <div class="action-buttons">
+                        <button class="action-btn primary" onclick="addQuickText()">🎯 拖曳放置文字</button>
+                        <button class="action-btn" onclick="applyText()">📦 填入選取區</button>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:5px;">💡 九宮格設定初始位置，放置後可拖曳微調</small>
                 </div>
                 
                 <!-- 下載面板 -->
@@ -6298,6 +6439,7 @@
         let currentTool = null;
         let eyedropperTarget = null;
         let textStyle = { bold: false, italic: false, underline: false, align: 'left' };
+        let quickTextPosition = 'center';
         let settings = { gasUrl: '', lineUserId: '', geminiApiKey: '', groqApiKey: '' };
         let aiResultText = '';
         
@@ -6595,24 +6737,9 @@
             if (e.key === 'Escape') {
                 let cancelled = false;
                 
-                // 取消貼圖放置
-                if (stickerDragMode || pendingSticker) {
-                    pendingSticker = null;
-                    stickerDragMode = false;
-                    cancelled = true;
-                }
-                
-                // 取消圖章放置
-                if (stampDragMode || pendingStamp) {
-                    pendingStamp = null;
-                    stampDragMode = false;
-                    cancelled = true;
-                }
-                
-                // 取消簽名放置
-                if (signDragMode || pendingSign) {
-                    pendingSign = null;
-                    signDragMode = false;
+                // 取消拖曳物件
+                if (currentDragObject) {
+                    removeDragObject();
                     cancelled = true;
                 }
                 
@@ -7221,22 +7348,22 @@
                 return;
             }
             
-            saveHistory(); // 儲存歷史供復原
-            
             const fontSize = parseInt(document.getElementById('wmFontSize').value) || 48;
             const color = document.getElementById('wmColor').value;
             const opacity = parseFloat(document.getElementById('wmOpacity').value);
             const angle = parseInt(document.getElementById('wmAngle').value);
             
-            ctx.save();
-            ctx.globalAlpha = opacity;
-            ctx.font = `bold ${fontSize}px sans-serif`;
-            ctx.fillStyle = color;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
             if (isTile) {
-                // 平鋪模式
+                // 平鋪模式直接繪製
+                saveHistory();
+                
+                ctx.save();
+                ctx.globalAlpha = opacity;
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                ctx.fillStyle = color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
                 const textWidth = ctx.measureText(text).width;
                 const gap = textWidth + 50;
                 const rows = Math.ceil(canvas.height / (fontSize + 80));
@@ -7253,22 +7380,17 @@
                         ctx.restore();
                     }
                 }
+                ctx.restore();
+                showToast('✨ 浮水印已加上！');
             } else {
-                // 單一位置
-                const pos = getWatermarkPosition(ctx.measureText(text).width, fontSize);
-                ctx.translate(pos.x, pos.y);
-                ctx.rotate(angle * Math.PI / 180);
-                ctx.fillText(text, 0, 0);
+                // 單一模式使用拖曳，九宮格作為初始位置
+                createDragObject('watermark', text, { 
+                    fontSize, 
+                    color, 
+                    opacity, 
+                    angle 
+                }, wmPosition);
             }
-            
-            ctx.restore();
-            
-            // 更新 PDF 暫存
-            if (pdfDoc && pdfPages[currentPageNum - 1]) {
-                pdfPages[currentPageNum - 1] = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            }
-            
-            showToast('✨ 浮水印已加上！');
         }
         
         function addImageWatermark(isTile) {
@@ -7578,75 +7700,21 @@
                 return;
             }
             
-            // 檢查是否啟用拖曳模式
-            const dragMode = document.getElementById('stampDragMode')?.checked;
+            const size = parseInt(document.getElementById('stampSize').value);
+            const color = document.getElementById('stampColor').value;
             
-            if (dragMode) {
-                // 拖曳模式：等待用戶點擊畫布
-                pendingStamp = text;
-                stampDragMode = true;
-                showToast('👆 點擊畫布選擇圖章位置');
-                canvas.style.cursor = 'crosshair';
-                return;
-            }
-            
-            // 固定位置模式
-            placeStampAt(text, null, null);
+            // 使用九宮格位置作為初始位置
+            createDragObject('stamp', text, { fontSize: size, color: color }, stampPosition);
         }
         
         function placeStampAt(text, clickX, clickY) {
-            saveHistory();
+            // 保留給舊代碼兼容
             const size = parseInt(document.getElementById('stampSize').value);
             const color = document.getElementById('stampColor').value;
-            const angle = parseInt(document.getElementById('stampAngle').value);
-            
-            let posX, posY;
-            
-            if (clickX !== null && clickY !== null) {
-                // 使用點擊位置
-                posX = clickX;
-                posY = clickY;
-            } else {
-                // 使用九宮格位置
-                const padding = 50;
-                ctx.font = `bold ${size}px sans-serif`;
-                const textWidth = ctx.measureText(text).width || size * text.length * 0.6;
-                
-                switch(stampPosition) {
-                    case 'top-left': posX = padding + textWidth/2; posY = padding + size/2; break;
-                    case 'top-center': posX = canvas.width/2; posY = padding + size/2; break;
-                    case 'top-right': posX = canvas.width - padding - textWidth/2; posY = padding + size/2; break;
-                    case 'middle-left': posX = padding + textWidth/2; posY = canvas.height/2; break;
-                    case 'center': posX = canvas.width/2; posY = canvas.height/2; break;
-                    case 'middle-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height/2; break;
-                    case 'bottom-left': posX = padding + textWidth/2; posY = canvas.height - padding - size/2; break;
-                    case 'bottom-center': posX = canvas.width/2; posY = canvas.height - padding - size/2; break;
-                    case 'bottom-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height - padding - size/2; break;
-                    default: posX = canvas.width/2; posY = canvas.height/2;
-                }
-            }
-            
-            ctx.save();
-            ctx.translate(posX, posY);
-            ctx.rotate(angle * Math.PI / 180);
-            
-            ctx.font = `bold ${size}px sans-serif`;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // 測量文字寬度
-            const measuredWidth = ctx.measureText(text).width;
-            
-            // 畫邊框
-            ctx.strokeRect(-measuredWidth/2 - 15, -size/2 - 10, measuredWidth + 30, size + 20);
-            
-            // 畫文字
-            ctx.strokeText(text, 0, 0);
-            
-            ctx.restore();
-            showToast('🔖 圖章已加上');
+            createDragObject('stamp', text, { fontSize: size, color: color }, stampPosition);
+            pendingStamp = null;
+            stampDragMode = false;
+            canvas.style.cursor = 'default';
         }
         
         function setStampPosition(pos, btn) {
@@ -7732,62 +7800,20 @@
         
         function applySignature() {
             const signCanvas = document.getElementById('signCanvas');
+            const signData = signCanvas.toDataURL();
             
-            // 檢查是否啟用拖曳模式
-            const dragMode = document.getElementById('signDragMode')?.checked;
-            
-            if (dragMode) {
-                // 拖曳模式：等待用戶點擊畫布
-                pendingSign = signCanvas.toDataURL();
-                signDragMode = true;
-                showToast('👆 點擊畫布選擇簽名位置');
-                canvas.style.cursor = 'crosshair';
-                return;
-            }
-            
-            // 固定位置模式
-            placeSignAt(null, null);
+            // 使用九宮格位置作為初始位置
+            createDragObject('sign', signData, {}, signPosition);
         }
         
         function placeSignAt(clickX, clickY) {
-            saveHistory();
+            // 保留給舊代碼兼容
             const signCanvas = document.getElementById('signCanvas');
-            const signImg = new Image();
-            
-            signImg.onload = function() {
-                let x, y;
-                
-                if (clickX !== null && clickY !== null) {
-                    // 使用點擊位置（置中於點擊處）
-                    x = clickX - signCanvas.width / 2;
-                    y = clickY - signCanvas.height / 2;
-                } else {
-                    // 使用九宮格位置
-                    const padding = 20;
-                    switch(signPosition) {
-                        case 'top-left': x = padding; y = padding; break;
-                        case 'top-center': x = (canvas.width - signCanvas.width) / 2; y = padding; break;
-                        case 'top-right': x = canvas.width - signCanvas.width - padding; y = padding; break;
-                        case 'middle-left': x = padding; y = (canvas.height - signCanvas.height) / 2; break;
-                        case 'center': x = (canvas.width - signCanvas.width) / 2; y = (canvas.height - signCanvas.height) / 2; break;
-                        case 'middle-right': x = canvas.width - signCanvas.width - padding; y = (canvas.height - signCanvas.height) / 2; break;
-                        case 'bottom-left': x = padding; y = canvas.height - signCanvas.height - padding; break;
-                        case 'bottom-center': x = (canvas.width - signCanvas.width) / 2; y = canvas.height - signCanvas.height - padding; break;
-                        case 'bottom-right': x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding; break;
-                        default: x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding;
-                    }
-                }
-                
-                ctx.drawImage(signImg, x, y);
-                showToast('✍️ 簽名已套用');
-                
-                // 重置狀態
-                pendingSign = null;
-                signDragMode = false;
-                canvas.style.cursor = 'default';
-            };
-            
-            signImg.src = pendingSign || signCanvas.toDataURL();
+            const signData = pendingSign || signCanvas.toDataURL();
+            createDragObject('sign', signData, {}, signPosition);
+            pendingSign = null;
+            signDragMode = false;
+            canvas.style.cursor = 'default';
         }
         
         function setSignPosition(pos, btn) {
@@ -8181,60 +8207,18 @@
         }
         
         function addSticker(sticker) {
-            // 檢查是否啟用拖曳模式
-            const dragMode = document.getElementById('stickerDragMode')?.checked;
-            
-            if (dragMode) {
-                // 拖曳模式：等待用戶點擊畫布
-                pendingSticker = sticker;
-                stickerDragMode = true;
-                showToast('👆 點擊畫布選擇貼圖位置');
-                canvas.style.cursor = 'crosshair';
-                return;
-            }
-            
-            // 固定位置模式
-            placeStickerAt(sticker, null, null);
+            const size = parseInt(document.getElementById('stickerSize').value);
+            // 使用九宮格位置作為初始位置
+            createDragObject('sticker', sticker, { size }, stickerPosition);
         }
         
         function placeStickerAt(sticker, clickX, clickY) {
-            saveHistory();
+            // 保留給舊代碼兼容
             const size = parseInt(document.getElementById('stickerSize').value);
-            
-            let posX, posY;
-            
-            if (clickX !== null && clickY !== null) {
-                // 使用點擊位置
-                posX = clickX;
-                posY = clickY;
-            } else {
-                // 使用九宮格位置
-                const padding = 50;
-                switch(stickerPosition) {
-                    case 'top-left': posX = padding; posY = padding; break;
-                    case 'top-center': posX = canvas.width/2; posY = padding; break;
-                    case 'top-right': posX = canvas.width - padding; posY = padding; break;
-                    case 'middle-left': posX = padding; posY = canvas.height/2; break;
-                    case 'center': posX = canvas.width/2; posY = canvas.height/2; break;
-                    case 'middle-right': posX = canvas.width - padding; posY = canvas.height/2; break;
-                    case 'bottom-left': posX = padding; posY = canvas.height - padding; break;
-                    case 'bottom-center': posX = canvas.width/2; posY = canvas.height - padding; break;
-                    case 'bottom-right': posX = canvas.width - padding; posY = canvas.height - padding; break;
-                    default: posX = canvas.width/2; posY = canvas.height/2;
-                }
-            }
-            
-            ctx.font = `${size}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(sticker, posX, posY);
-            
-            // 重置狀態
+            createDragObject('sticker', sticker, { size }, stickerPosition);
             pendingSticker = null;
             stickerDragMode = false;
             canvas.style.cursor = 'default';
-            
-            showToast('😀 貼圖已加上');
         }
         
         function setStickerPosition(pos, btn) {
@@ -8250,7 +8234,446 @@
                 canvas.style.cursor = 'default';
                 showToast('❌ 貼圖放置已取消');
             }
-            // 不顯示「沒有待放置」訊息，因為可能是面板關閉時自動調用
+        }
+        
+        // ===== 拖曳放置系統 =====
+        let currentDragObject = null;
+        let dragOffsetX = 0, dragOffsetY = 0;
+        let isDraggingObject = false;
+        
+        // 根據九宮格位置計算座標
+        function getPositionCoords(position, objWidth, objHeight, canvasW, canvasH) {
+            const padding = 30;
+            let x, y;
+            
+            switch(position) {
+                case 'top-left': 
+                    x = padding + objWidth/2; 
+                    y = padding + objHeight/2; 
+                    break;
+                case 'top-center': 
+                    x = canvasW / 2; 
+                    y = padding + objHeight/2; 
+                    break;
+                case 'top-right': 
+                    x = canvasW - padding - objWidth/2; 
+                    y = padding + objHeight/2; 
+                    break;
+                case 'middle-left': 
+                    x = padding + objWidth/2; 
+                    y = canvasH / 2; 
+                    break;
+                case 'center': 
+                    x = canvasW / 2; 
+                    y = canvasH / 2; 
+                    break;
+                case 'middle-right': 
+                    x = canvasW - padding - objWidth/2; 
+                    y = canvasH / 2; 
+                    break;
+                case 'bottom-left': 
+                    x = padding + objWidth/2; 
+                    y = canvasH - padding - objHeight/2; 
+                    break;
+                case 'bottom-center': 
+                    x = canvasW / 2; 
+                    y = canvasH - padding - objHeight/2; 
+                    break;
+                case 'bottom-right': 
+                    x = canvasW - padding - objWidth/2; 
+                    y = canvasH - padding - objHeight/2; 
+                    break;
+                default: 
+                    x = canvasW / 2; 
+                    y = canvasH / 2;
+            }
+            
+            return { x, y };
+        }
+        
+        // 創建可拖曳物件
+        function createDragObject(type, content, options = {}, position = 'center') {
+            // 移除之前的拖曳物件
+            removeDragObject();
+            
+            const dragLayer = document.getElementById('dragLayer');
+            const container = document.getElementById('canvasContainer');
+            const canvasRect = canvas.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            // 計算畫布在容器中的偏移
+            const canvasOffsetX = canvasRect.left - containerRect.left + container.scrollLeft;
+            const canvasOffsetY = canvasRect.top - containerRect.top + container.scrollTop;
+            
+            const obj = document.createElement('div');
+            obj.className = 'drag-object';
+            obj.dataset.type = type;
+            obj.dataset.content = content;
+            obj.dataset.options = JSON.stringify(options);
+            
+            // 根據類型設定內容和大小
+            let width, height;
+            switch(type) {
+                case 'sticker':
+                    const stickerSize = options.size || 50;
+                    obj.innerHTML = `<span class="drag-object-text" style="font-size:${stickerSize}px">${content}</span>`;
+                    width = stickerSize * 1.2;
+                    height = stickerSize * 1.2;
+                    break;
+                case 'stamp':
+                    const stampSize = options.fontSize || 24;
+                    obj.innerHTML = `<span class="drag-object-text" style="font-size:${stampSize}px;color:${options.color || '#ff0000'};font-weight:bold;border:3px solid ${options.color || '#ff0000'};padding:8px 15px;border-radius:8px;transform:rotate(-15deg)">${content}</span>`;
+                    width = content.length * stampSize * 0.8 + 40;
+                    height = stampSize * 2.5;
+                    break;
+                case 'text':
+                    const textSize = options.fontSize || 24;
+                    obj.innerHTML = `<span class="drag-object-text" style="font-size:${textSize}px;color:${options.color || '#ffffff'}">${content}</span>`;
+                    width = content.length * textSize * 0.7 + 20;
+                    height = textSize * 1.5;
+                    break;
+                case 'qr':
+                    obj.innerHTML = `<img src="${content}" style="width:${options.size || 100}px;height:${options.size || 100}px">`;
+                    width = options.size || 100;
+                    height = options.size || 100;
+                    break;
+                case 'sign':
+                    obj.innerHTML = `<img src="${content}" style="max-width:150px;max-height:80px">`;
+                    width = 150;
+                    height = 80;
+                    break;
+                case 'textfx':
+                    // 文字特效需要特殊處理
+                    const fxSize = options.fontSize || 60;
+                    obj.innerHTML = `<span class="drag-object-text" style="font-size:${fxSize}px;font-weight:bold;color:${options.color1 || '#ff0000'}">${content}</span>`;
+                    width = content.length * fxSize * 0.7 + 30;
+                    height = fxSize * 1.5;
+                    break;
+                case 'watermark':
+                    const wmSize = options.fontSize || 48;
+                    const wmOpacity = options.opacity || 0.5;
+                    const wmAngle = options.angle || -30;
+                    obj.innerHTML = `<span class="drag-object-text" style="font-size:${wmSize}px;font-weight:bold;color:${options.color || '#ffffff'};opacity:${wmOpacity};transform:rotate(${wmAngle}deg)">${content}</span>`;
+                    width = content.length * wmSize * 0.7 + 30;
+                    height = wmSize * 2;
+                    break;
+                case 'quicktext':
+                    const qtSize = options.fontSize || 24;
+                    obj.innerHTML = `<span class="drag-object-text" style="font-size:${qtSize}px;color:${options.color || '#ffffff'};${options.bold ? 'font-weight:bold;' : ''}${options.italic ? 'font-style:italic;' : ''}">${content}</span>`;
+                    width = content.length * qtSize * 0.6 + 20;
+                    height = qtSize * 1.5;
+                    break;
+            }
+            
+            // 根據九宮格位置計算初始座標
+            const scaleX = canvasRect.width / canvas.width;
+            const scaleY = canvasRect.height / canvas.height;
+            
+            const posCoords = getPositionCoords(position, width, height, canvasRect.width, canvasRect.height);
+            const initialX = canvasOffsetX + posCoords.x - width/2;
+            const initialY = canvasOffsetY + posCoords.y - height/2;
+            
+            obj.style.left = initialX + 'px';
+            obj.style.top = initialY + 'px';
+            obj.style.width = width + 'px';
+            obj.style.height = height + 'px';
+            
+            // 添加拖曳事件
+            obj.addEventListener('mousedown', startDragObject);
+            obj.addEventListener('touchstart', startDragObjectTouch, { passive: false });
+            
+            dragLayer.appendChild(obj);
+            currentDragObject = obj;
+            
+            // 顯示控制按鈕
+            document.getElementById('dragControls').classList.add('show');
+            
+            showToast('🎯 拖曳到想要的位置，點擊確認');
+        }
+        
+        function startDragObject(e) {
+            if (!currentDragObject) return;
+            e.preventDefault();
+            isDraggingObject = true;
+            currentDragObject.classList.add('dragging');
+            
+            const rect = currentDragObject.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            
+            document.addEventListener('mousemove', moveDragObject);
+            document.addEventListener('mouseup', stopDragObject);
+        }
+        
+        function startDragObjectTouch(e) {
+            if (!currentDragObject) return;
+            e.preventDefault();
+            isDraggingObject = true;
+            currentDragObject.classList.add('dragging');
+            
+            const touch = e.touches[0];
+            const rect = currentDragObject.getBoundingClientRect();
+            dragOffsetX = touch.clientX - rect.left;
+            dragOffsetY = touch.clientY - rect.top;
+            
+            document.addEventListener('touchmove', moveDragObjectTouch, { passive: false });
+            document.addEventListener('touchend', stopDragObject);
+        }
+        
+        function moveDragObject(e) {
+            if (!isDraggingObject || !currentDragObject) return;
+            
+            const container = document.getElementById('canvasContainer');
+            const containerRect = container.getBoundingClientRect();
+            
+            let newX = e.clientX - containerRect.left - dragOffsetX + container.scrollLeft;
+            let newY = e.clientY - containerRect.top - dragOffsetY + container.scrollTop;
+            
+            currentDragObject.style.left = newX + 'px';
+            currentDragObject.style.top = newY + 'px';
+        }
+        
+        function moveDragObjectTouch(e) {
+            if (!isDraggingObject || !currentDragObject) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const container = document.getElementById('canvasContainer');
+            const containerRect = container.getBoundingClientRect();
+            
+            let newX = touch.clientX - containerRect.left - dragOffsetX + container.scrollLeft;
+            let newY = touch.clientY - containerRect.top - dragOffsetY + container.scrollTop;
+            
+            currentDragObject.style.left = newX + 'px';
+            currentDragObject.style.top = newY + 'px';
+        }
+        
+        function stopDragObject() {
+            isDraggingObject = false;
+            if (currentDragObject) {
+                currentDragObject.classList.remove('dragging');
+            }
+            document.removeEventListener('mousemove', moveDragObject);
+            document.removeEventListener('mouseup', stopDragObject);
+            document.removeEventListener('touchmove', moveDragObjectTouch);
+            document.removeEventListener('touchend', stopDragObject);
+        }
+        
+        // 確認放置
+        function confirmDragObject() {
+            if (!currentDragObject) return;
+            
+            saveHistory();
+            
+            const container = document.getElementById('canvasContainer');
+            const canvasRect = canvas.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            // 計算畫布在容器中的偏移
+            const canvasOffsetX = canvasRect.left - containerRect.left + container.scrollLeft;
+            const canvasOffsetY = canvasRect.top - containerRect.top + container.scrollTop;
+            
+            // 獲取物件位置（相對於容器）
+            const objLeft = parseFloat(currentDragObject.style.left);
+            const objTop = parseFloat(currentDragObject.style.top);
+            const objWidth = parseFloat(currentDragObject.style.width);
+            const objHeight = parseFloat(currentDragObject.style.height);
+            
+            // 計算中心點相對於畫布的位置
+            const scaleX = canvas.width / canvasRect.width;
+            const scaleY = canvas.height / canvasRect.height;
+            
+            const centerX = (objLeft + objWidth/2 - canvasOffsetX) * scaleX;
+            const centerY = (objTop + objHeight/2 - canvasOffsetY) * scaleY;
+            
+            const type = currentDragObject.dataset.type;
+            const content = currentDragObject.dataset.content;
+            const options = JSON.parse(currentDragObject.dataset.options || '{}');
+            
+            // 繪製到畫布
+            switch(type) {
+                case 'sticker':
+                    ctx.font = `${options.size || 50}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(content, centerX, centerY);
+                    break;
+                case 'stamp':
+                    drawStampAtPosition(content, centerX, centerY, options);
+                    break;
+                case 'text':
+                    ctx.font = `${options.fontSize || 24}px sans-serif`;
+                    ctx.fillStyle = options.color || '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(content, centerX, centerY);
+                    break;
+                case 'qr':
+                    const qrImg = currentDragObject.querySelector('img');
+                    if (qrImg) {
+                        const qrSize = options.size || 100;
+                        ctx.drawImage(qrImg, centerX - qrSize/2, centerY - qrSize/2, qrSize, qrSize);
+                    }
+                    break;
+                case 'sign':
+                    const signImg = currentDragObject.querySelector('img');
+                    if (signImg) {
+                        const signW = signImg.naturalWidth || 150;
+                        const signH = signImg.naturalHeight || 80;
+                        const scale = Math.min(150/signW, 80/signH, 1);
+                        ctx.drawImage(signImg, centerX - signW*scale/2, centerY - signH*scale/2, signW*scale, signH*scale);
+                    }
+                    break;
+                case 'textfx':
+                    applyTextFxDirect(options.style, content, centerX, centerY, options);
+                    break;
+                case 'watermark':
+                    ctx.save();
+                    ctx.globalAlpha = options.opacity || 0.5;
+                    ctx.font = `bold ${options.fontSize || 48}px sans-serif`;
+                    ctx.fillStyle = options.color || '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.translate(centerX, centerY);
+                    ctx.rotate((options.angle || -30) * Math.PI / 180);
+                    ctx.fillText(content, 0, 0);
+                    ctx.restore();
+                    break;
+                case 'quicktext':
+                    ctx.save();
+                    let fontStyle = '';
+                    if (options.bold) fontStyle += 'bold ';
+                    if (options.italic) fontStyle += 'italic ';
+                    ctx.font = `${fontStyle}${options.fontSize || 24}px sans-serif`;
+                    ctx.fillStyle = options.color || '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(content, centerX, centerY);
+                    ctx.restore();
+                    break;
+            }
+            
+            removeDragObject();
+            showToast('✅ 已確認放置');
+        }
+        
+        // 輔助函數：在指定位置繪製圖章
+        function drawStampAtPosition(text, x, y, options) {
+            const fontSize = options.fontSize || 24;
+            const color = options.color || '#ff0000';
+            
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(-15 * Math.PI / 180);
+            
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const textWidth = ctx.measureText(text).width;
+            const padding = 15;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-textWidth/2 - padding, -fontSize/2 - 8, textWidth + padding*2, fontSize + 16);
+            
+            ctx.fillStyle = color;
+            ctx.fillText(text, 0, 0);
+            
+            ctx.restore();
+        }
+        
+        // 輔助函數：直接繪製文字特效
+        function applyTextFxDirect(style, text, x, y, options) {
+            const fontSize = options.fontSize || 60;
+            const color1 = options.color1 || '#ff0000';
+            const color2 = options.color2 || '#0000ff';
+            
+            ctx.font = `bold ${fontSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            switch(style) {
+                case 'shadow':
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = 5;
+                    ctx.shadowOffsetY = 5;
+                    ctx.fillStyle = color1;
+                    ctx.fillText(text, x, y);
+                    ctx.shadowColor = 'transparent';
+                    break;
+                case 'outline':
+                    ctx.strokeStyle = color2;
+                    ctx.lineWidth = 3;
+                    ctx.strokeText(text, x, y);
+                    ctx.fillStyle = color1;
+                    ctx.fillText(text, x, y);
+                    break;
+                case 'gradient':
+                    const gradient = ctx.createLinearGradient(x - 100, y, x + 100, y);
+                    gradient.addColorStop(0, color1);
+                    gradient.addColorStop(1, color2);
+                    ctx.fillStyle = gradient;
+                    ctx.fillText(text, x, y);
+                    break;
+                case 'glow':
+                    ctx.shadowColor = color1;
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(text, x, y);
+                    ctx.shadowColor = 'transparent';
+                    break;
+                case '3d':
+                    for (let i = 10; i >= 0; i--) {
+                        ctx.fillStyle = i === 0 ? color1 : color2;
+                        ctx.fillText(text, x + i, y + i);
+                    }
+                    break;
+                case 'neon':
+                    ctx.shadowColor = color1;
+                    ctx.shadowBlur = 30;
+                    ctx.strokeStyle = color1;
+                    ctx.lineWidth = 2;
+                    ctx.strokeText(text, x, y);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(text, x, y);
+                    ctx.shadowColor = 'transparent';
+                    break;
+                case 'retro':
+                    ctx.fillStyle = color2;
+                    ctx.fillText(text, x + 4, y + 4);
+                    ctx.fillStyle = color1;
+                    ctx.fillText(text, x, y);
+                    break;
+                case 'metal':
+                    const metalGrad = ctx.createLinearGradient(x, y - fontSize/2, x, y + fontSize/2);
+                    metalGrad.addColorStop(0, '#ccc');
+                    metalGrad.addColorStop(0.5, '#fff');
+                    metalGrad.addColorStop(1, '#999');
+                    ctx.fillStyle = metalGrad;
+                    ctx.fillText(text, x, y);
+                    ctx.strokeStyle = '#666';
+                    ctx.lineWidth = 1;
+                    ctx.strokeText(text, x, y);
+                    break;
+            }
+        }
+        
+        // 取消放置
+        function cancelDragObject() {
+            removeDragObject();
+            showToast('❌ 已取消放置');
+        }
+        
+        // 移除拖曳物件
+        function removeDragObject() {
+            const dragLayer = document.getElementById('dragLayer');
+            if (dragLayer) {
+                dragLayer.innerHTML = '';
+            }
+            currentDragObject = null;
+            document.getElementById('dragControls').classList.remove('show');
         }
         
         // ===== 旋轉翻轉 =====
@@ -8450,6 +8873,17 @@
             togglePanel('qrPanel', 'qrBtn');
         }
         
+        // QR 碼狀態
+        let qrPosition = 'bottom-right';
+        let qrDragMode = false;
+        let pendingQR = null;
+        
+        function setQRPosition(pos, btn) {
+            qrPosition = pos;
+            document.querySelectorAll('#qrPanel .pos-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        
         function generateQR() {
             const content = document.getElementById('qrContent').value.trim();
             if (!content) {
@@ -8477,18 +8911,22 @@
                 return;
             }
             
-            saveHistory();
+            const size = parseInt(document.getElementById('qrSize').value);
             
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = function() {
-                // 放在右下角
-                const x = canvas.width - img.width - 20;
-                const y = canvas.height - img.height - 20;
-                ctx.drawImage(img, x, y);
-                showToast('📍 QR Code 已放置');
-            };
-            img.src = qrImage.src;
+            // 使用九宮格位置作為初始位置
+            createDragObject('qr', qrImage.src, { size }, qrPosition);
+        }
+        
+        function placeQRAt(clickX, clickY) {
+            // 保留給舊代碼兼容
+            const qrImage = document.getElementById('qrImage');
+            if (!qrImage && !pendingQR) return;
+            
+            const size = parseInt(document.getElementById('qrSize').value);
+            createDragObject('qr', pendingQR || qrImage.src, { size }, qrPosition);
+            pendingQR = null;
+            qrDragMode = false;
+            canvas.style.cursor = 'default';
         }
         
         // ===== 壓縮功能 =====
@@ -8779,6 +9217,17 @@
             togglePanel('textFxPanel', 'textFxBtn');
         }
         
+        // 文字特效狀態
+        let textFxPosition = 'center';
+        let textFxDragMode = false;
+        let pendingTextFx = null;
+        
+        function setTextFxPosition(pos, btn) {
+            textFxPosition = pos;
+            document.querySelectorAll('#textFxPanel .pos-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        
         function applyTextFx(style) {
             const text = document.getElementById('fxText').value.trim();
             if (!text) {
@@ -8786,85 +9235,35 @@
                 return;
             }
             
-            saveHistory();
-            const fontSize = document.getElementById('fxFontSize').value;
+            const fontSize = parseInt(document.getElementById('fxFontSize').value);
             const color1 = document.getElementById('fxColor1').value;
             const color2 = document.getElementById('fxColor2').value;
             
-            ctx.font = `bold ${fontSize}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            // 使用九宮格位置作為初始位置
+            createDragObject('textfx', text, { 
+                style, 
+                fontSize, 
+                color1, 
+                color2 
+            }, textFxPosition);
+        }
+        
+        function applyTextFxAt(style, text, clickX, clickY) {
+            // 保留給舊代碼兼容
+            const fontSize = parseInt(document.getElementById('fxFontSize').value);
+            const color1 = document.getElementById('fxColor1').value;
+            const color2 = document.getElementById('fxColor2').value;
             
-            const x = canvas.width / 2;
-            const y = canvas.height / 2;
+            createDragObject('textfx', text, { 
+                style, 
+                fontSize, 
+                color1, 
+                color2 
+            }, textFxPosition);
             
-            switch(style) {
-                case 'shadow':
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowOffsetX = 5;
-                    ctx.shadowOffsetY = 5;
-                    ctx.fillStyle = color1;
-                    ctx.fillText(text, x, y);
-                    ctx.shadowColor = 'transparent';
-                    break;
-                case 'outline':
-                    ctx.strokeStyle = color2;
-                    ctx.lineWidth = 3;
-                    ctx.strokeText(text, x, y);
-                    ctx.fillStyle = color1;
-                    ctx.fillText(text, x, y);
-                    break;
-                case 'gradient':
-                    const gradient = ctx.createLinearGradient(x - 100, y, x + 100, y);
-                    gradient.addColorStop(0, color1);
-                    gradient.addColorStop(1, color2);
-                    ctx.fillStyle = gradient;
-                    ctx.fillText(text, x, y);
-                    break;
-                case 'glow':
-                    ctx.shadowColor = color1;
-                    ctx.shadowBlur = 20;
-                    ctx.fillStyle = 'white';
-                    ctx.fillText(text, x, y);
-                    ctx.shadowColor = 'transparent';
-                    break;
-                case '3d':
-                    for (let i = 10; i >= 0; i--) {
-                        ctx.fillStyle = i === 0 ? color1 : color2;
-                        ctx.fillText(text, x + i, y + i);
-                    }
-                    break;
-                case 'neon':
-                    ctx.shadowColor = color1;
-                    ctx.shadowBlur = 30;
-                    ctx.strokeStyle = color1;
-                    ctx.lineWidth = 2;
-                    ctx.strokeText(text, x, y);
-                    ctx.fillStyle = 'white';
-                    ctx.fillText(text, x, y);
-                    ctx.shadowColor = 'transparent';
-                    break;
-                case 'retro':
-                    ctx.fillStyle = color2;
-                    ctx.fillText(text, x + 4, y + 4);
-                    ctx.fillStyle = color1;
-                    ctx.fillText(text, x, y);
-                    break;
-                case 'metal':
-                    const metalGrad = ctx.createLinearGradient(x, y - fontSize/2, x, y + fontSize/2);
-                    metalGrad.addColorStop(0, '#ccc');
-                    metalGrad.addColorStop(0.5, '#fff');
-                    metalGrad.addColorStop(1, '#999');
-                    ctx.fillStyle = metalGrad;
-                    ctx.fillText(text, x, y);
-                    ctx.strokeStyle = '#666';
-                    ctx.lineWidth = 1;
-                    ctx.strokeText(text, x, y);
-                    break;
-            }
-            
-            showToast('🔤 文字特效已套用');
+            pendingTextFx = null;
+            textFxDragMode = false;
+            canvas.style.cursor = 'default';
         }
         
         // ===== 模板功能 =====
@@ -14718,6 +15117,18 @@
                 return;
             }
             
+            // QR 碼放置模式
+            if (qrDragMode && pendingQR) {
+                placeQRAt(coords.x, coords.y);
+                return;
+            }
+            
+            // 文字特效放置模式
+            if (textFxDragMode && pendingTextFx) {
+                applyTextFxAt(pendingTextFx.style, pendingTextFx.text, coords.x, coords.y);
+                return;
+            }
+            
             // 吸色器
             if (eyedropperTarget) {
                 pickColor(coords);
@@ -14751,10 +15162,35 @@
             textStyle.align = align;
         }
         
-        // ===== 應用文字 =====
+        // ===== 快速添加文字（拖曳模式）=====
+        function addQuickText() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                showToast('⚠️ 請輸入文字');
+                return;
+            }
+            
+            const fontSize = parseInt(document.getElementById('fontSize').value) || 24;
+            const color = document.getElementById('textColor').value;
+            
+            createDragObject('quicktext', text, {
+                fontSize,
+                color,
+                bold: textStyle.bold,
+                italic: textStyle.italic
+            }, quickTextPosition);
+        }
+        
+        function setQuickTextPosition(pos, btn) {
+            quickTextPosition = pos;
+            document.querySelectorAll('#textPanel .pos-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        
+        // ===== 應用文字（選取區模式）=====
         function applyText() {
             if (!currentSelection) {
-                showToast('⚠️ 請先選取區域');
+                showToast('⚠️ 請先用 ✂️ 選取區域');
                 return;
             }
             
