@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>🎩 圖文魔術師</title>
+    <title>🎩 圖文魔術師 V2.0 終極版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -4220,7 +4220,7 @@
     <div id="splashScreen">
         <div class="splash-logo">🎩</div>
         <div class="splash-title">圖文魔術師</div>
-        <div class="splash-version">V1.0</div>
+        <div class="splash-version">V2.0 終極版</div>
         <div class="splash-loading"></div>
     </div>
     
@@ -4233,7 +4233,7 @@
         <header class="header">
             <div class="header-left">
                 <span class="header-logo">🎩</span>
-                <span class="header-title">圖文魔術師<span class="header-version">V1.0</span></span>
+                <span class="header-title">圖文魔術師<span class="header-version">V2.0</span></span>
             </div>
             <div class="header-right">
                 <span class="header-time" id="headerTime">--:--</span>
@@ -4649,6 +4649,20 @@
                             <input type="range" id="stampAngle" min="-45" max="45" value="-15">
                         </div>
                     </div>
+                    <div class="wm-position" style="margin-top:10px;">
+                        <label>位置：</label>
+                        <div class="position-grid">
+                            <button class="pos-btn" onclick="setStampPosition('top-left', this)">↖</button>
+                            <button class="pos-btn" onclick="setStampPosition('top-center', this)">↑</button>
+                            <button class="pos-btn" onclick="setStampPosition('top-right', this)">↗</button>
+                            <button class="pos-btn" onclick="setStampPosition('middle-left', this)">←</button>
+                            <button class="pos-btn active" onclick="setStampPosition('center', this)">⬤</button>
+                            <button class="pos-btn" onclick="setStampPosition('middle-right', this)">→</button>
+                            <button class="pos-btn" onclick="setStampPosition('bottom-left', this)">↙</button>
+                            <button class="pos-btn" onclick="setStampPosition('bottom-center', this)">↓</button>
+                            <button class="pos-btn" onclick="setStampPosition('bottom-right', this)">↘</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- 簽名面板 -->
@@ -4663,6 +4677,20 @@
                         <div class="wm-option">
                             <label>顏色</label>
                             <input type="color" id="signColor" value="#000000">
+                        </div>
+                    </div>
+                    <div class="wm-position" style="margin-top:10px;">
+                        <label>位置：</label>
+                        <div class="position-grid">
+                            <button class="pos-btn" onclick="setSignPosition('top-left', this)">↖</button>
+                            <button class="pos-btn" onclick="setSignPosition('top-center', this)">↑</button>
+                            <button class="pos-btn" onclick="setSignPosition('top-right', this)">↗</button>
+                            <button class="pos-btn" onclick="setSignPosition('middle-left', this)">←</button>
+                            <button class="pos-btn" onclick="setSignPosition('center', this)">⬤</button>
+                            <button class="pos-btn" onclick="setSignPosition('middle-right', this)">→</button>
+                            <button class="pos-btn" onclick="setSignPosition('bottom-left', this)">↙</button>
+                            <button class="pos-btn" onclick="setSignPosition('bottom-center', this)">↓</button>
+                            <button class="pos-btn active" onclick="setSignPosition('bottom-right', this)">↘</button>
                         </div>
                     </div>
                     <div class="sign-actions">
@@ -7093,7 +7121,14 @@
             if (!currentSelection) return;
             
             saveHistory();
-            const { x, y, w, h } = currentSelection;
+            // 確保座標為整數
+            const x = Math.round(currentSelection.x);
+            const y = Math.round(currentSelection.y);
+            const w = Math.round(currentSelection.w);
+            const h = Math.round(currentSelection.h);
+            
+            if (w < 1 || h < 1) return;
+            
             const blockSize = 10;
             const imageData = ctx.getImageData(x, y, w, h);
             const data = imageData.data;
@@ -7138,6 +7173,9 @@
             togglePanel('stampPanel', 'stampBtn');
         }
         
+        // 圖章位置
+        let stampPosition = 'center';
+        
         function addStamp(text) {
             if (!text) {
                 showToast('⚠️ 請輸入圖章文字');
@@ -7149,8 +7187,26 @@
             const color = document.getElementById('stampColor').value;
             const angle = parseInt(document.getElementById('stampAngle').value);
             
+            // 根據位置計算座標
+            const textWidth = ctx.measureText(text).width || size * text.length * 0.6;
+            const padding = 50;
+            let posX, posY;
+            
+            switch(stampPosition) {
+                case 'top-left': posX = padding + textWidth/2; posY = padding + size/2; break;
+                case 'top-center': posX = canvas.width/2; posY = padding + size/2; break;
+                case 'top-right': posX = canvas.width - padding - textWidth/2; posY = padding + size/2; break;
+                case 'middle-left': posX = padding + textWidth/2; posY = canvas.height/2; break;
+                case 'center': posX = canvas.width/2; posY = canvas.height/2; break;
+                case 'middle-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height/2; break;
+                case 'bottom-left': posX = padding + textWidth/2; posY = canvas.height - padding - size/2; break;
+                case 'bottom-center': posX = canvas.width/2; posY = canvas.height - padding - size/2; break;
+                case 'bottom-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height - padding - size/2; break;
+                default: posX = canvas.width/2; posY = canvas.height/2;
+            }
+            
             ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.translate(posX, posY);
             ctx.rotate(angle * Math.PI / 180);
             
             ctx.font = `bold ${size}px sans-serif`;
@@ -7159,9 +7215,11 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
+            // 測量文字寬度
+            const measuredWidth = ctx.measureText(text).width;
+            
             // 畫邊框
-            const textWidth = ctx.measureText(text).width;
-            ctx.strokeRect(-textWidth/2 - 15, -size/2 - 10, textWidth + 30, size + 20);
+            ctx.strokeRect(-measuredWidth/2 - 15, -size/2 - 10, measuredWidth + 30, size + 20);
             
             // 畫文字
             ctx.strokeText(text, 0, 0);
@@ -7170,9 +7228,16 @@
             showToast('🔖 圖章已加上');
         }
         
+        function setStampPosition(pos, btn) {
+            stampPosition = pos;
+            document.querySelectorAll('#stampPanel .pos-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        
         // ===== 簽名功能 =====
         let signCtx = null;
         let isDrawingSign = false;
+        let signPosition = 'bottom-right';
         
         function showSignPanel() {
             togglePanel('signPanel', 'signBtn');
@@ -7226,13 +7291,33 @@
             const signCanvas = document.getElementById('signCanvas');
             const signImg = new Image();
             signImg.onload = function() {
-                // 放在右下角
-                const x = canvas.width - signCanvas.width - 20;
-                const y = canvas.height - signCanvas.height - 20;
+                // 根據位置計算座標
+                const padding = 20;
+                let x, y;
+                
+                switch(signPosition) {
+                    case 'top-left': x = padding; y = padding; break;
+                    case 'top-center': x = (canvas.width - signCanvas.width) / 2; y = padding; break;
+                    case 'top-right': x = canvas.width - signCanvas.width - padding; y = padding; break;
+                    case 'middle-left': x = padding; y = (canvas.height - signCanvas.height) / 2; break;
+                    case 'center': x = (canvas.width - signCanvas.width) / 2; y = (canvas.height - signCanvas.height) / 2; break;
+                    case 'middle-right': x = canvas.width - signCanvas.width - padding; y = (canvas.height - signCanvas.height) / 2; break;
+                    case 'bottom-left': x = padding; y = canvas.height - signCanvas.height - padding; break;
+                    case 'bottom-center': x = (canvas.width - signCanvas.width) / 2; y = canvas.height - signCanvas.height - padding; break;
+                    case 'bottom-right': x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding; break;
+                    default: x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding;
+                }
+                
                 ctx.drawImage(signImg, x, y);
                 showToast('✍️ 簽名已套用');
             };
             signImg.src = signCanvas.toDataURL();
+        }
+        
+        function setSignPosition(pos, btn) {
+            signPosition = pos;
+            document.querySelectorAll('#signPanel .pos-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         }
         
         // ===== 濾鏡功能 =====
