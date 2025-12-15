@@ -4807,6 +4807,26 @@
                             <input type="range" id="stickerSize" min="30" max="200" value="80">
                         </div>
                     </div>
+                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="stickerDragMode" style="width:18px;height:18px;">
+                            <span>👆 自由放置模式（點擊畫布選擇位置）</span>
+                        </label>
+                    </div>
+                    <div class="wm-position" style="margin-top:10px;" id="stickerPositionGrid">
+                        <label>固定位置：</label>
+                        <div class="position-grid">
+                            <button class="pos-btn" onclick="setStickerPosition('top-left', this)">↖</button>
+                            <button class="pos-btn" onclick="setStickerPosition('top-center', this)">↑</button>
+                            <button class="pos-btn" onclick="setStickerPosition('top-right', this)">↗</button>
+                            <button class="pos-btn" onclick="setStickerPosition('middle-left', this)">←</button>
+                            <button class="pos-btn active" onclick="setStickerPosition('center', this)">⬤</button>
+                            <button class="pos-btn" onclick="setStickerPosition('middle-right', this)">→</button>
+                            <button class="pos-btn" onclick="setStickerPosition('bottom-left', this)">↙</button>
+                            <button class="pos-btn" onclick="setStickerPosition('bottom-center', this)">↓</button>
+                            <button class="pos-btn" onclick="setStickerPosition('bottom-right', this)">↘</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- 裁切面板 -->
@@ -7734,6 +7754,11 @@
             shape: ['●','○','■','□','▲','△','▼','▽','◆','◇','★','☆','✦','✧','❤','♥','◉','◎','⬤','⬡']
         };
         
+        // 貼圖狀態
+        let stickerPosition = 'center';
+        let pendingSticker = null;
+        let stickerDragMode = false;
+        
         function showStickerPanel() {
             togglePanel('stickerPanel', 'stickerBtn');
             showStickerTab('emoji');
@@ -7756,15 +7781,66 @@
         }
         
         function addSticker(sticker) {
+            // 檢查是否啟用拖曳模式
+            const dragMode = document.getElementById('stickerDragMode')?.checked;
+            
+            if (dragMode) {
+                // 拖曳模式：等待用戶點擊畫布
+                pendingSticker = sticker;
+                stickerDragMode = true;
+                showToast('👆 點擊畫布選擇貼圖位置');
+                canvas.style.cursor = 'crosshair';
+                return;
+            }
+            
+            // 固定位置模式
+            placeStickerAt(sticker, null, null);
+        }
+        
+        function placeStickerAt(sticker, clickX, clickY) {
             saveHistory();
             const size = parseInt(document.getElementById('stickerSize').value);
+            
+            let posX, posY;
+            
+            if (clickX !== null && clickY !== null) {
+                // 使用點擊位置
+                posX = clickX;
+                posY = clickY;
+            } else {
+                // 使用九宮格位置
+                const padding = 50;
+                switch(stickerPosition) {
+                    case 'top-left': posX = padding; posY = padding; break;
+                    case 'top-center': posX = canvas.width/2; posY = padding; break;
+                    case 'top-right': posX = canvas.width - padding; posY = padding; break;
+                    case 'middle-left': posX = padding; posY = canvas.height/2; break;
+                    case 'center': posX = canvas.width/2; posY = canvas.height/2; break;
+                    case 'middle-right': posX = canvas.width - padding; posY = canvas.height/2; break;
+                    case 'bottom-left': posX = padding; posY = canvas.height - padding; break;
+                    case 'bottom-center': posX = canvas.width/2; posY = canvas.height - padding; break;
+                    case 'bottom-right': posX = canvas.width - padding; posY = canvas.height - padding; break;
+                    default: posX = canvas.width/2; posY = canvas.height/2;
+                }
+            }
             
             ctx.font = `${size}px sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(sticker, canvas.width / 2, canvas.height / 2);
+            ctx.fillText(sticker, posX, posY);
+            
+            // 重置狀態
+            pendingSticker = null;
+            stickerDragMode = false;
+            canvas.style.cursor = 'default';
             
             showToast('😀 貼圖已加上');
+        }
+        
+        function setStickerPosition(pos, btn) {
+            stickerPosition = pos;
+            document.querySelectorAll('#stickerPanel .pos-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         }
         
         // ===== 旋轉翻轉 =====
@@ -13989,6 +14065,12 @@
             // 簽名放置模式
             if (signDragMode && pendingSign) {
                 placeSignAt(coords.x, coords.y);
+                return;
+            }
+            
+            // 貼圖放置模式
+            if (stickerDragMode && pendingSticker) {
+                placeStickerAt(pendingSticker, coords.x, coords.y);
                 return;
             }
             
