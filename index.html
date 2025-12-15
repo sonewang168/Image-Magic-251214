@@ -4521,7 +4521,6 @@
                 <button class="tool-btn" id="magicWandBtn" onclick="setTool('magicWand')" disabled><span class="icon">🪄</span>魔術棒</button>
                 <button class="tool-btn" id="lassoBtn" onclick="setTool('lasso')" disabled><span class="icon">🔗</span>套索</button>
                 <button class="tool-btn" id="penToolBtn" onclick="setTool('penTool')" disabled><span class="icon">🖊️</span>鋼筆</button>
-                <button class="tool-btn" id="pathBtn" onclick="showPathPanel()" disabled><span class="icon">➿</span>路徑</button>
                 <button class="tool-btn" id="channelBtn" onclick="showChannelPanel()" disabled><span class="icon">📺</span>色版</button>
                 <button class="tool-btn" id="autoEnhanceBtn" onclick="autoEnhance()" disabled><span class="icon">✨</span>自動增強</button>
                 <button class="tool-btn" id="autoColorBtn" onclick="autoColor()" disabled><span class="icon">🌈</span>自動色彩</button>
@@ -4556,7 +4555,6 @@
                 <button class="tool-btn" id="cloudBtn" onclick="showCloudPanel()" disabled><span class="icon">☁️</span>雲端</button>
                 <button class="tool-btn" id="shortcutBtn" onclick="showShortcutPanel()" disabled><span class="icon">⌨️</span>快捷鍵</button>
                 <button class="tool-btn" id="themeBtn" onclick="toggleTheme()" disabled><span class="icon">🎨</span>主題</button>
-                <button class="tool-btn" id="langBtn" onclick="toggleLang()" disabled><span class="icon">🌐</span>語言</button>
                 <button class="tool-btn" id="helpBtn" onclick="showHelpPanel()"><span class="icon">❓</span>說明</button>
             </div>
             
@@ -6214,6 +6212,105 @@
                         </div>
                     </div>
                     <button class="wm-action-btn add" onclick="applyLevels()">📊 套用色階</button>
+                </div>
+                
+                <!-- 列印面板 -->
+                <div class="print-panel" id="printPanel">
+                    <div class="panel-title">🖨️ 列印設定</div>
+                    <div class="print-preview" style="background:#fff;padding:10px;border-radius:8px;margin-bottom:10px;">
+                        <canvas id="printPreview" width="150" height="100" style="width:100%;border:1px solid #ddd;"></canvas>
+                    </div>
+                    <div class="print-options">
+                        <div class="wm-option">
+                            <label>紙張方向</label>
+                            <select id="printOrientation" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="portrait">直向</option>
+                                <option value="landscape">橫向</option>
+                            </select>
+                        </div>
+                        <div class="wm-option">
+                            <label>紙張大小</label>
+                            <select id="printSize" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="a4">A4</option>
+                                <option value="a3">A3</option>
+                                <option value="letter">Letter</option>
+                                <option value="photo4x6">4x6 相片</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="printImage()">🖨️ 開始列印</button>
+                </div>
+                
+                <!-- 分享面板 -->
+                <div class="share-panel" id="sharePanel">
+                    <div class="panel-title">📤 分享圖片</div>
+                    <div class="share-buttons" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <button class="wm-action-btn" onclick="shareNative()" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                            📱 系統分享
+                        </button>
+                        <button class="wm-action-btn" onclick="shareToEmail()" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
+                            📧 Email
+                        </button>
+                        <button class="wm-action-btn" onclick="copyToClipboard()" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">
+                            📋 複製圖片
+                        </button>
+                        <button class="wm-action-btn" onclick="sendToLine()" style="background:#06c755;">
+                            💬 LINE
+                        </button>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:10px;">💡 系統分享支援所有已安裝的應用程式</small>
+                </div>
+                
+                <!-- 雲端面板 -->
+                <div class="cloud-panel" id="cloudPanel">
+                    <div class="panel-title">☁️ 雲端儲存</div>
+                    <div class="cloud-buttons" style="display:flex;flex-direction:column;gap:10px;">
+                        <button class="wm-action-btn" onclick="uploadToImgur()" style="background:linear-gradient(135deg,#1bb76e,#17a562);">
+                            📷 上傳至 Imgur（免費）
+                        </button>
+                        <button class="wm-action-btn" onclick="saveToLocalStorage()" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                            💾 存到瀏覽器
+                        </button>
+                        <button class="wm-action-btn" onclick="loadFromLocalStorage()" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
+                            📂 從瀏覽器載入
+                        </button>
+                    </div>
+                    <div id="cloudResult" style="margin-top:10px;padding:10px;background:var(--bg-input);border-radius:8px;display:none;">
+                        <small>上傳結果將顯示在這裡</small>
+                    </div>
+                </div>
+                
+                <!-- 快捷鍵面板 -->
+                <div class="shortcut-panel" id="shortcutPanel">
+                    <div class="panel-title">⌨️ 快捷鍵一覽</div>
+                    <div class="shortcut-list" style="font-size:12px;line-height:2;">
+                        <div><kbd>Ctrl+Z</kbd> 復原</div>
+                        <div><kbd>Ctrl+S</kbd> 儲存</div>
+                        <div><kbd>Ctrl+C</kbd> 複製</div>
+                        <div><kbd>Ctrl+V</kbd> 貼上</div>
+                        <div><kbd>ESC</kbd> 取消工具</div>
+                        <div><kbd>Delete</kbd> 清除選取</div>
+                        <div><kbd>+/-</kbd> 縮放</div>
+                        <div><kbd>0</kbd> 重置縮放</div>
+                        <div><kbd>R</kbd> 旋轉 90°</div>
+                        <div><kbd>H</kbd> 水平翻轉</div>
+                        <div><kbd>V</kbd> 垂直翻轉</div>
+                    </div>
+                </div>
+                
+                <!-- 說明面板 -->
+                <div class="help-panel" id="helpPanel">
+                    <div class="panel-title">❓ 使用說明</div>
+                    <div style="font-size:12px;line-height:1.8;">
+                        <p><strong>📷 載入圖片</strong><br>點擊上傳或拖放圖片到畫布</p>
+                        <p><strong>✂️ 選取工具</strong><br>框選區域後可裁切、模糊、複製</p>
+                        <p><strong>🔲 馬賽克</strong><br>在畫布上塗抹打碼</p>
+                        <p><strong>💦 浮水印</strong><br>添加文字或圖片浮水印</p>
+                        <p><strong>🔖 圖章</strong><br>添加日期、核准等印章</p>
+                        <p><strong>📱 QR碼</strong><br>生成並放置 QR Code</p>
+                        <p><strong>🎨 濾鏡</strong><br>套用各種相片濾鏡</p>
+                        <p><strong>💾 儲存</strong><br>下載為 PNG/JPG/PDF</p>
+                    </div>
                 </div>
                 
                 <!-- 文字編輯面板 -->
@@ -12144,6 +12241,55 @@
             showToast('🎭 自動對比完成');
         }
         
+        function autoLevel() {
+            saveHistory();
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // 計算每個通道的直方圖
+            let histR = new Array(256).fill(0);
+            let histG = new Array(256).fill(0);
+            let histB = new Array(256).fill(0);
+            
+            for (let i = 0; i < data.length; i += 4) {
+                histR[data[i]]++;
+                histG[data[i+1]]++;
+                histB[data[i+2]]++;
+            }
+            
+            // 找出 1% 和 99% 的閾值
+            const pixels = data.length / 4;
+            const threshold = pixels * 0.01;
+            
+            function findBounds(hist) {
+                let sum = 0, min = 0, max = 255;
+                for (let i = 0; i < 256; i++) {
+                    sum += hist[i];
+                    if (sum > threshold) { min = i; break; }
+                }
+                sum = 0;
+                for (let i = 255; i >= 0; i--) {
+                    sum += hist[i];
+                    if (sum > threshold) { max = i; break; }
+                }
+                return { min, max };
+            }
+            
+            const boundsR = findBounds(histR);
+            const boundsG = findBounds(histG);
+            const boundsB = findBounds(histB);
+            
+            // 拉伸色階
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = Math.min(255, Math.max(0, (data[i] - boundsR.min) * 255 / (boundsR.max - boundsR.min)));
+                data[i+1] = Math.min(255, Math.max(0, (data[i+1] - boundsG.min) * 255 / (boundsG.max - boundsG.min)));
+                data[i+2] = Math.min(255, Math.max(0, (data[i+2] - boundsB.min) * 255 / (boundsB.max - boundsB.min)));
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            showToast('📊 自動色階完成');
+        }
+        
         // ===== HDR 效果 =====
         function applyHDR() {
             saveHistory();
@@ -12510,6 +12656,43 @@
             togglePanel('sharePanel', 'shareBtn');
         }
         
+        // 系統原生分享
+        async function shareNative() {
+            if (!navigator.share) {
+                showToast('⚠️ 您的瀏覽器不支援系統分享');
+                return;
+            }
+            
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([blob], 'image.png', { type: 'image/png' });
+                
+                await navigator.share({
+                    title: '圖文魔術師',
+                    text: '分享我的圖片',
+                    files: [file]
+                });
+                showToast('✅ 分享成功');
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    showToast('❌ 分享失敗');
+                }
+            }
+        }
+        
+        // 複製圖片到剪貼簿
+        async function copyToClipboard() {
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+                showToast('✅ 已複製到剪貼簿');
+            } catch (err) {
+                showToast('⚠️ 複製失敗，請使用下載功能');
+            }
+        }
+        
         function shareToFacebook() {
             showToast('📘 分享到 Facebook - 需要先上傳圖片');
         }
@@ -12541,8 +12724,106 @@
             togglePanel('cloudPanel', 'cloudBtn');
         }
         
-        function saveToImgur() {
-            showToast('📷 Imgur 上傳需要 API Key');
+        // 上傳到 Imgur（匿名上傳，不需要 API Key）
+        async function uploadToImgur() {
+            showToast('📤 上傳中...');
+            
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const formData = new FormData();
+                formData.append('image', blob);
+                
+                const response = await fetch('https://api.imgur.com/3/image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Client-ID 546c25a59c58ad7' // 公開匿名上傳 ID
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const url = data.data.link;
+                    const resultDiv = document.getElementById('cloudResult');
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = `
+                        <div style="word-break:break-all;">
+                            <strong>✅ 上傳成功！</strong><br>
+                            <a href="${url}" target="_blank" style="color:var(--primary);">${url}</a>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${url}');showToast('✅ 已複製連結')" style="margin-top:8px;padding:5px 10px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">📋 複製連結</button>
+                    `;
+                    showToast('✅ 上傳成功！');
+                } else {
+                    throw new Error(data.data.error);
+                }
+            } catch (err) {
+                showToast('❌ 上傳失敗：' + err.message);
+            }
+        }
+        
+        // 存到瀏覽器 LocalStorage
+        function saveToLocalStorage() {
+            try {
+                const dataUrl = canvas.toDataURL('image/png');
+                const saves = JSON.parse(localStorage.getItem('imageMagicSaves') || '[]');
+                saves.unshift({
+                    id: Date.now(),
+                    data: dataUrl,
+                    date: new Date().toLocaleString()
+                });
+                // 最多保存 5 張
+                if (saves.length > 5) saves.pop();
+                localStorage.setItem('imageMagicSaves', JSON.stringify(saves));
+                showToast('✅ 已存到瀏覽器（最多保存 5 張）');
+            } catch (err) {
+                showToast('❌ 儲存失敗，可能空間不足');
+            }
+        }
+        
+        // 從瀏覽器載入
+        function loadFromLocalStorage() {
+            const saves = JSON.parse(localStorage.getItem('imageMagicSaves') || '[]');
+            if (saves.length === 0) {
+                showToast('⚠️ 沒有已保存的圖片');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('cloudResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<strong>📂 已保存的圖片：</strong><br>' + 
+                saves.map((s, i) => `
+                    <div style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px;background:rgba(255,255,255,0.1);border-radius:4px;">
+                        <img src="${s.data}" style="width:50px;height:50px;object-fit:cover;border-radius:4px;">
+                        <div style="flex:1;font-size:11px;">${s.date}</div>
+                        <button onclick="loadSavedImage(${i})" style="padding:4px 8px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">載入</button>
+                        <button onclick="deleteSavedImage(${i})" style="padding:4px 8px;background:#f44;color:white;border:none;border-radius:4px;cursor:pointer;">🗑️</button>
+                    </div>
+                `).join('');
+        }
+        
+        function loadSavedImage(index) {
+            const saves = JSON.parse(localStorage.getItem('imageMagicSaves') || '[]');
+            if (saves[index]) {
+                const img = new Image();
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    currentImage = img;
+                    showToast('✅ 圖片已載入');
+                };
+                img.src = saves[index].data;
+            }
+        }
+        
+        function deleteSavedImage(index) {
+            const saves = JSON.parse(localStorage.getItem('imageMagicSaves') || '[]');
+            saves.splice(index, 1);
+            localStorage.setItem('imageMagicSaves', JSON.stringify(saves));
+            loadFromLocalStorage();
+            showToast('🗑️ 已刪除');
         }
         
         function saveToCloudinary() {
@@ -12682,7 +12963,45 @@
         }
         
         function showMosaicArtPanel() {
-            showToast('🧱 馬賽克藝術功能開發中');
+            // 直接應用馬賽克藝術效果
+            saveHistory();
+            const blockSize = 10;
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let y = 0; y < canvas.height; y += blockSize) {
+                for (let x = 0; x < canvas.width; x += blockSize) {
+                    let r = 0, g = 0, b = 0, count = 0;
+                    
+                    // 計算區塊平均色
+                    for (let dy = 0; dy < blockSize && y + dy < canvas.height; dy++) {
+                        for (let dx = 0; dx < blockSize && x + dx < canvas.width; dx++) {
+                            const i = ((y + dy) * canvas.width + (x + dx)) * 4;
+                            r += data[i];
+                            g += data[i + 1];
+                            b += data[i + 2];
+                            count++;
+                        }
+                    }
+                    
+                    r = Math.round(r / count);
+                    g = Math.round(g / count);
+                    b = Math.round(b / count);
+                    
+                    // 填充區塊
+                    for (let dy = 0; dy < blockSize && y + dy < canvas.height; dy++) {
+                        for (let dx = 0; dx < blockSize && x + dx < canvas.width; dx++) {
+                            const i = ((y + dy) * canvas.width + (x + dx)) * 4;
+                            data[i] = r;
+                            data[i + 1] = g;
+                            data[i + 2] = b;
+                        }
+                    }
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            showToast('🧱 馬賽克藝術效果已套用');
         }
         
         // ===== 尺規 =====
@@ -12746,7 +13065,7 @@
                 'clonePanel', 'healPanel', 'redeyePanel', 'whiteBalancePanel', 'levelsPanel',
                 'curvesPanel', 'channelMixerPanel', 'colorBalancePanel', 'vibranPanel',
                 'hslPanel', 'splitTonePanel', 'lensPanel', 'chromaticPanel', 'filmGrainPanel',
-                'arrowPanel'
+                'arrowPanel', 'printPanel', 'sharePanel', 'cloudPanel', 'shortcutPanel', 'helpPanel'
             ];
             
             // 關閉其他面板
