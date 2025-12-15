@@ -359,6 +359,7 @@
         .canvas-info-bar {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 8px 12px;
             background: var(--bg-card);
             border-radius: 8px;
@@ -372,7 +373,44 @@
             gap: 5px;
         }
         #canvasInfo::before { content: '📐 '; }
+        #zoomInfo { 
+            cursor: pointer; 
+            padding: 4px 8px;
+            border-radius: 4px;
+            min-width: 50px;
+            text-align: center;
+        }
+        #zoomInfo:hover { background: var(--bg-input); }
         #zoomInfo::before { content: '🔍 '; }
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .zoom-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .zoom-btn:hover { background: var(--primary); }
+        .zoom-btn:active { transform: scale(0.95); }
+        .zoom-btn.fit { font-size: 14px; }
+        .zoom-hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            padding: 5px;
+            opacity: 0.7;
+        }
         .selection-box {
             position: absolute;
             border: 2px dashed var(--accent);
@@ -4470,12 +4508,18 @@
                 <div class="canvas-wrapper" id="canvasWrapper">
                     <div class="canvas-info-bar">
                         <span id="canvasInfo">0 x 0</span>
-                        <span id="zoomInfo">100%</span>
+                        <div class="zoom-controls">
+                            <button class="zoom-btn" onclick="zoomCanvas(-0.1)" title="縮小">➖</button>
+                            <span id="zoomInfo" onclick="resetZoom()" title="點擊重置">100%</span>
+                            <button class="zoom-btn" onclick="zoomCanvas(0.1)" title="放大">➕</button>
+                            <button class="zoom-btn fit" onclick="fitToScreen()" title="適合螢幕">🔲</button>
+                        </div>
                     </div>
                     <div class="canvas-container" id="canvasContainer">
                         <canvas id="mainCanvas"></canvas>
                         <div class="selection-box" id="selectionBox"></div>
                     </div>
+                    <div class="zoom-hint">💡 雙指縮放 | 滾輪縮放 | 雙擊重置</div>
                 </div>
                 
                 <!-- AI 分析面板 -->
@@ -6373,10 +6417,19 @@
                 ctx.drawImage(img, 0, 0, width, height);
                 originalImageData = ctx.getImageData(0, 0, width, height);
                 
+                // 重置縮放並適應螢幕
+                currentZoom = 1;
+                
                 // 更新畫布顯示資訊
                 updateCanvasInfo();
                 
                 showEditor();
+                
+                // 延遲執行適應螢幕，確保 DOM 已更新
+                setTimeout(() => {
+                    fitToScreen();
+                }, 100);
+                
                 showToast(`✨ 圖片載入成功！(${Math.round(width)} x ${Math.round(height)})`);
             };
             img.src = src;
@@ -6389,20 +6442,163 @@
             }
         }
         
+        // ===== 畫布縮放功能 =====
+        let currentZoom = 1;
+        const minZoom = 0.1;
+        const maxZoom = 5;
+        
         function updateZoomInfo() {
             const zoomInfo = document.getElementById('zoomInfo');
-            if (zoomInfo && canvas.width > 0) {
-                const displayWidth = canvas.offsetWidth;
-                const actualWidth = canvas.width;
-                const zoom = Math.round((displayWidth / actualWidth) * 100);
-                zoomInfo.textContent = `${zoom}%`;
+            if (zoomInfo) {
+                zoomInfo.textContent = `${Math.round(currentZoom * 100)}%`;
+            }
+            applyZoom();
+        }
+        
+        function applyZoom() {
+            canvas.style.transform = `scale(${currentZoom})`;
+            canvas.style.transformOrigin = 'center top';
+            
+            // 調整容器高度以適應縮放後的畫布
+            const container = document.getElementById('canvasContainer');
+            if (container && canvas.height > 0) {
+                const scaledHeight = canvas.height * currentZoom;
+                container.style.minHeight = `${Math.min(scaledHeight + 20, window.innerHeight * 0.8)}px`;
             }
         }
+        
+        function zoomCanvas(delta) {
+            const newZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom + delta));
+            if (newZoom !== currentZoom) {
+                currentZoom = newZoom;
+                updateZoomInfo();
+            }
+        }
+        
+        function setZoom(zoom) {
+            currentZoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+            updateZoomInfo();
+        }
+        
+        function resetZoom() {
+            currentZoom = 1;
+            updateZoomInfo();
+            showToast('🔍 縮放已重置為 100%');
+        }
+        
+        function fitToScreen() {
+            const container = document.getElementById('canvasContainer');
+            if (!container || canvas.width === 0) return;
+            
+            const containerWidth = container.clientWidth - 40;
+            const containerHeight = window.innerHeight * 0.65;
+            
+            const scaleX = containerWidth / canvas.width;
+            const scaleY = containerHeight / canvas.height;
+            
+            currentZoom = Math.min(scaleX, scaleY, 1);
+            updateZoomInfo();
+            showToast('🔲 已適應螢幕大小');
+        }
+        
+        // 滾輪縮放
+        function initZoomEvents() {
+            const container = document.getElementById('canvasContainer');
+            if (!container) return;
+            
+            // 滾輪縮放（Ctrl + 滾輪）
+            container.addEventListener('wheel', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    zoomCanvas(delta);
+                }
+            }, { passive: false });
+            
+            // 雙擊重置縮放
+            canvas.addEventListener('dblclick', (e) => {
+                if (!currentTool && !eyedropperTarget && !stampDragMode && !stickerDragMode && !signDragMode) {
+                    resetZoom();
+                }
+            });
+            
+            // 觸控縮放（雙指）
+            let initialDistance = 0;
+            let initialZoom = 1;
+            
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    initialDistance = getTouchDistance(e.touches);
+                    initialZoom = currentZoom;
+                }
+            }, { passive: false });
+            
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const currentDistance = getTouchDistance(e.touches);
+                    const scale = currentDistance / initialDistance;
+                    setZoom(initialZoom * scale);
+                }
+            }, { passive: false });
+        }
+        
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        // 頁面載入時初始化縮放事件
+        document.addEventListener('DOMContentLoaded', initZoomEvents);
         
         // 監聽視窗大小變化
         window.addEventListener('resize', () => {
             if (document.getElementById('canvasWrapper').classList.contains('show')) {
                 updateZoomInfo();
+            }
+        });
+        
+        // 監聽 ESC 鍵取消所有工具和放置模式
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                let cancelled = false;
+                
+                // 取消貼圖放置
+                if (stickerDragMode || pendingSticker) {
+                    pendingSticker = null;
+                    stickerDragMode = false;
+                    cancelled = true;
+                }
+                
+                // 取消圖章放置
+                if (stampDragMode || pendingStamp) {
+                    pendingStamp = null;
+                    stampDragMode = false;
+                    cancelled = true;
+                }
+                
+                // 取消簽名放置
+                if (signDragMode || pendingSign) {
+                    pendingSign = null;
+                    signDragMode = false;
+                    cancelled = true;
+                }
+                
+                // 取消當前工具
+                if (currentTool) {
+                    currentTool = null;
+                    document.getElementById('selectBtn')?.classList.remove('active');
+                    document.getElementById('mosaicBtn')?.classList.remove('active');
+                    document.getElementById('arrowBtn')?.classList.remove('active');
+                    cancelled = true;
+                }
+                
+                if (cancelled) {
+                    canvas.style.cursor = 'default';
+                    showToast('🔓 已取消');
+                }
             }
         });
         
@@ -7327,6 +7523,14 @@
         
         // ===== 圖章功能 =====
         function showStampPanel() {
+            const panel = document.getElementById('stampPanel');
+            const isShowing = panel.classList.contains('show');
+            
+            // 如果正在關閉面板，同時取消放置模式
+            if (isShowing) {
+                cancelStampPlacement();
+            }
+            
             togglePanel('stampPanel', 'stampBtn');
         }
         
@@ -7424,8 +7628,6 @@
                 stampDragMode = false;
                 canvas.style.cursor = 'default';
                 showToast('❌ 圖章放置已取消');
-            } else {
-                showToast('ℹ️ 沒有待放置的圖章');
             }
         }
         
@@ -7435,8 +7637,18 @@
         let signPosition = 'bottom-right';
         
         function showSignPanel() {
+            const panel = document.getElementById('signPanel');
+            const isShowing = panel.classList.contains('show');
+            
+            // 如果正在關閉面板，同時取消放置模式
+            if (isShowing) {
+                cancelSignPlacement();
+            }
+            
             togglePanel('signPanel', 'signBtn');
-            initSignCanvas();
+            if (!isShowing) {
+                initSignCanvas();
+            }
         }
         
         function initSignCanvas() {
@@ -7557,8 +7769,6 @@
                 signDragMode = false;
                 canvas.style.cursor = 'default';
                 showToast('❌ 簽名放置已取消');
-            } else {
-                showToast('ℹ️ 沒有待放置的簽名');
             }
         }
         
@@ -7907,8 +8117,18 @@
         let stickerDragMode = false;
         
         function showStickerPanel() {
+            const panel = document.getElementById('stickerPanel');
+            const isShowing = panel.classList.contains('show');
+            
+            // 如果正在關閉面板，同時取消放置模式
+            if (isShowing) {
+                cancelStickerPlacement();
+            }
+            
             togglePanel('stickerPanel', 'stickerBtn');
-            showStickerTab('emoji');
+            if (!isShowing) {
+                showStickerTab('emoji');
+            }
         }
         
         function showStickerTab(tab) {
@@ -7996,9 +8216,8 @@
                 stickerDragMode = false;
                 canvas.style.cursor = 'default';
                 showToast('❌ 貼圖放置已取消');
-            } else {
-                showToast('ℹ️ 沒有待放置的貼圖');
             }
+            // 不顯示「沒有待放置」訊息，因為可能是面板關閉時自動調用
         }
         
         // ===== 旋轉翻轉 =====
@@ -8389,12 +8608,22 @@
         }
         
         function showArrowPanel() {
+            const panel = document.getElementById('arrowPanel');
+            const isShowing = panel.classList.contains('show');
+            
+            // 如果正在關閉面板，同時取消箭頭工具
+            if (isShowing && currentTool === 'arrow') {
+                currentTool = null;
+                document.getElementById('arrowBtn').classList.remove('active');
+                canvas.style.cursor = 'default';
+            }
+            
             togglePanel('arrowPanel', 'arrowBtn');
         }
         
         function activateArrowTool() {
             setTool('arrow');
-            showToast('➡️ 拖曳畫箭頭（按 ESC 或點取消可退出）');
+            showToast('➡️ 拖曳畫箭頭（再點箭頭按鈕可取消）');
         }
         
         function cancelArrowTool() {
@@ -8404,7 +8633,11 @@
                 canvas.style.cursor = 'default';
                 showToast('❌ 箭頭工具已取消');
             }
-            togglePanel('arrowPanel', 'arrowBtn');
+            // 關閉面板
+            const panel = document.getElementById('arrowPanel');
+            if (panel.classList.contains('show')) {
+                togglePanel('arrowPanel', 'arrowBtn');
+            }
         }
         
         // ===== 畫筆工具 =====
