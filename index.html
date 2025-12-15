@@ -4649,8 +4649,14 @@
                             <input type="range" id="stampAngle" min="-45" max="45" value="-15">
                         </div>
                     </div>
-                    <div class="wm-position" style="margin-top:10px;">
-                        <label>位置：</label>
+                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="stampDragMode" style="width:18px;height:18px;">
+                            <span>👆 自由放置模式（點擊畫布選擇位置）</span>
+                        </label>
+                    </div>
+                    <div class="wm-position" style="margin-top:10px;" id="stampPositionGrid">
+                        <label>固定位置：</label>
                         <div class="position-grid">
                             <button class="pos-btn" onclick="setStampPosition('top-left', this)">↖</button>
                             <button class="pos-btn" onclick="setStampPosition('top-center', this)">↑</button>
@@ -4679,8 +4685,14 @@
                             <input type="color" id="signColor" value="#000000">
                         </div>
                     </div>
-                    <div class="wm-position" style="margin-top:10px;">
-                        <label>位置：</label>
+                    <div class="stamp-mode" style="margin:10px 0;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px;">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="signDragMode" style="width:18px;height:18px;">
+                            <span>👆 自由放置模式（點擊畫布選擇位置）</span>
+                        </label>
+                    </div>
+                    <div class="wm-position" style="margin-top:10px;" id="signPositionGrid">
+                        <label>固定位置：</label>
                         <div class="position-grid">
                             <button class="pos-btn" onclick="setSignPosition('top-left', this)">↖</button>
                             <button class="pos-btn" onclick="setSignPosition('top-center', this)">↑</button>
@@ -7173,8 +7185,10 @@
             togglePanel('stampPanel', 'stampBtn');
         }
         
-        // 圖章位置
+        // 圖章狀態
         let stampPosition = 'center';
+        let pendingStamp = null; // 待放置的圖章
+        let stampDragMode = false;
         
         function addStamp(text) {
             if (!text) {
@@ -7182,27 +7196,52 @@
                 return;
             }
             
+            // 檢查是否啟用拖曳模式
+            const dragMode = document.getElementById('stampDragMode')?.checked;
+            
+            if (dragMode) {
+                // 拖曳模式：等待用戶點擊畫布
+                pendingStamp = text;
+                stampDragMode = true;
+                showToast('👆 點擊畫布選擇圖章位置');
+                canvas.style.cursor = 'crosshair';
+                return;
+            }
+            
+            // 固定位置模式
+            placeStampAt(text, null, null);
+        }
+        
+        function placeStampAt(text, clickX, clickY) {
             saveHistory();
             const size = parseInt(document.getElementById('stampSize').value);
             const color = document.getElementById('stampColor').value;
             const angle = parseInt(document.getElementById('stampAngle').value);
             
-            // 根據位置計算座標
-            const textWidth = ctx.measureText(text).width || size * text.length * 0.6;
-            const padding = 50;
             let posX, posY;
             
-            switch(stampPosition) {
-                case 'top-left': posX = padding + textWidth/2; posY = padding + size/2; break;
-                case 'top-center': posX = canvas.width/2; posY = padding + size/2; break;
-                case 'top-right': posX = canvas.width - padding - textWidth/2; posY = padding + size/2; break;
-                case 'middle-left': posX = padding + textWidth/2; posY = canvas.height/2; break;
-                case 'center': posX = canvas.width/2; posY = canvas.height/2; break;
-                case 'middle-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height/2; break;
-                case 'bottom-left': posX = padding + textWidth/2; posY = canvas.height - padding - size/2; break;
-                case 'bottom-center': posX = canvas.width/2; posY = canvas.height - padding - size/2; break;
-                case 'bottom-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height - padding - size/2; break;
-                default: posX = canvas.width/2; posY = canvas.height/2;
+            if (clickX !== null && clickY !== null) {
+                // 使用點擊位置
+                posX = clickX;
+                posY = clickY;
+            } else {
+                // 使用九宮格位置
+                const padding = 50;
+                ctx.font = `bold ${size}px sans-serif`;
+                const textWidth = ctx.measureText(text).width || size * text.length * 0.6;
+                
+                switch(stampPosition) {
+                    case 'top-left': posX = padding + textWidth/2; posY = padding + size/2; break;
+                    case 'top-center': posX = canvas.width/2; posY = padding + size/2; break;
+                    case 'top-right': posX = canvas.width - padding - textWidth/2; posY = padding + size/2; break;
+                    case 'middle-left': posX = padding + textWidth/2; posY = canvas.height/2; break;
+                    case 'center': posX = canvas.width/2; posY = canvas.height/2; break;
+                    case 'middle-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height/2; break;
+                    case 'bottom-left': posX = padding + textWidth/2; posY = canvas.height - padding - size/2; break;
+                    case 'bottom-center': posX = canvas.width/2; posY = canvas.height - padding - size/2; break;
+                    case 'bottom-right': posX = canvas.width - padding - textWidth/2; posY = canvas.height - padding - size/2; break;
+                    default: posX = canvas.width/2; posY = canvas.height/2;
+                }
             }
             
             ctx.save();
@@ -7286,32 +7325,68 @@
             signCtx.fillRect(0, 0, signCanvas.width, signCanvas.height);
         }
         
+        // 簽名拖曳相關
+        let signDragMode = false;
+        let pendingSign = null;
+        
         function applySignature() {
+            const signCanvas = document.getElementById('signCanvas');
+            
+            // 檢查是否啟用拖曳模式
+            const dragMode = document.getElementById('signDragMode')?.checked;
+            
+            if (dragMode) {
+                // 拖曳模式：等待用戶點擊畫布
+                pendingSign = signCanvas.toDataURL();
+                signDragMode = true;
+                showToast('👆 點擊畫布選擇簽名位置');
+                canvas.style.cursor = 'crosshair';
+                return;
+            }
+            
+            // 固定位置模式
+            placeSignAt(null, null);
+        }
+        
+        function placeSignAt(clickX, clickY) {
             saveHistory();
             const signCanvas = document.getElementById('signCanvas');
             const signImg = new Image();
+            
             signImg.onload = function() {
-                // 根據位置計算座標
-                const padding = 20;
                 let x, y;
                 
-                switch(signPosition) {
-                    case 'top-left': x = padding; y = padding; break;
-                    case 'top-center': x = (canvas.width - signCanvas.width) / 2; y = padding; break;
-                    case 'top-right': x = canvas.width - signCanvas.width - padding; y = padding; break;
-                    case 'middle-left': x = padding; y = (canvas.height - signCanvas.height) / 2; break;
-                    case 'center': x = (canvas.width - signCanvas.width) / 2; y = (canvas.height - signCanvas.height) / 2; break;
-                    case 'middle-right': x = canvas.width - signCanvas.width - padding; y = (canvas.height - signCanvas.height) / 2; break;
-                    case 'bottom-left': x = padding; y = canvas.height - signCanvas.height - padding; break;
-                    case 'bottom-center': x = (canvas.width - signCanvas.width) / 2; y = canvas.height - signCanvas.height - padding; break;
-                    case 'bottom-right': x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding; break;
-                    default: x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding;
+                if (clickX !== null && clickY !== null) {
+                    // 使用點擊位置（置中於點擊處）
+                    x = clickX - signCanvas.width / 2;
+                    y = clickY - signCanvas.height / 2;
+                } else {
+                    // 使用九宮格位置
+                    const padding = 20;
+                    switch(signPosition) {
+                        case 'top-left': x = padding; y = padding; break;
+                        case 'top-center': x = (canvas.width - signCanvas.width) / 2; y = padding; break;
+                        case 'top-right': x = canvas.width - signCanvas.width - padding; y = padding; break;
+                        case 'middle-left': x = padding; y = (canvas.height - signCanvas.height) / 2; break;
+                        case 'center': x = (canvas.width - signCanvas.width) / 2; y = (canvas.height - signCanvas.height) / 2; break;
+                        case 'middle-right': x = canvas.width - signCanvas.width - padding; y = (canvas.height - signCanvas.height) / 2; break;
+                        case 'bottom-left': x = padding; y = canvas.height - signCanvas.height - padding; break;
+                        case 'bottom-center': x = (canvas.width - signCanvas.width) / 2; y = canvas.height - signCanvas.height - padding; break;
+                        case 'bottom-right': x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding; break;
+                        default: x = canvas.width - signCanvas.width - padding; y = canvas.height - signCanvas.height - padding;
+                    }
                 }
                 
                 ctx.drawImage(signImg, x, y);
                 showToast('✍️ 簽名已套用');
+                
+                // 重置狀態
+                pendingSign = null;
+                signDragMode = false;
+                canvas.style.cursor = 'default';
             };
-            signImg.src = signCanvas.toDataURL();
+            
+            signImg.src = pendingSign || signCanvas.toDataURL();
         }
         
         function setSignPosition(pos, btn) {
@@ -13900,8 +13975,25 @@
         }
         
         function handleCanvasClick(e) {
+            const coords = getCanvasCoords(e);
+            
+            // 圖章放置模式
+            if (stampDragMode && pendingStamp) {
+                placeStampAt(pendingStamp, coords.x, coords.y);
+                pendingStamp = null;
+                stampDragMode = false;
+                canvas.style.cursor = 'default';
+                return;
+            }
+            
+            // 簽名放置模式
+            if (signDragMode && pendingSign) {
+                placeSignAt(coords.x, coords.y);
+                return;
+            }
+            
+            // 吸色器
             if (eyedropperTarget) {
-                const coords = getCanvasCoords(e);
                 pickColor(coords);
             }
         }
