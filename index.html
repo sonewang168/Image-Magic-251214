@@ -7338,7 +7338,18 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('page-' + page).classList.add('active');
-            event.currentTarget.classList.add('active');
+            // 安全處理：當直接調用函數時 event 可能未定義
+            if (typeof event !== 'undefined' && event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            } else {
+                // 根據頁面名稱激活對應的導航項
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => {
+                    if (item.getAttribute('onclick')?.includes(page)) {
+                        item.classList.add('active');
+                    }
+                });
+            }
         }
         
         // ===== 工具分類切換 =====
@@ -7349,7 +7360,17 @@
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.currentTarget.classList.add('active');
+            // 安全處理：當直接調用函數時 event 可能未定義
+            if (typeof event !== 'undefined' && event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            } else {
+                // 根據分類名稱激活對應的按鈕
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    if (btn.getAttribute('onclick')?.includes(category)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
             
             // 隱藏所有工具組
             document.querySelectorAll('.toolbar-tools').forEach(tools => {
@@ -9077,7 +9098,9 @@
         
         function showStickerTab(tab) {
             document.querySelectorAll('.sticker-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
             
             const grid = document.getElementById('stickerGrid');
             grid.innerHTML = '';
@@ -9613,7 +9636,9 @@
         
         function setCropRatio(ratio) {
             document.querySelectorAll('.crop-preset').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
             
             if (ratio === 'free') {
                 cropRatio = null;
@@ -10394,7 +10419,17 @@
         
         function showTemplates(category) {
             document.querySelectorAll('.template-cat').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
+            // 安全地處理 active 狀態
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // 直接調用時，根據 category 找到對應的按鈕
+                document.querySelectorAll('.template-cat').forEach(c => {
+                    if (c.getAttribute('onclick')?.includes(`'${category}'`)) {
+                        c.classList.add('active');
+                    }
+                });
+            }
             
             const grid = document.getElementById('templateGrid');
             grid.innerHTML = '';
