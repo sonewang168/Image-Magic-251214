@@ -9214,7 +9214,7 @@
                     height = textSize * 1.5;
                     break;
                 case 'qr':
-                    obj.innerHTML = `<img src="${content}" crossorigin="anonymous" style="width:${options.size || 100}px;height:${options.size || 100}px">`;
+                    obj.innerHTML = `<img src="${content}" style="width:${options.size || 100}px;height:${options.size || 100}px">`;
                     width = options.size || 100;
                     height = options.size || 100;
                     break;
@@ -9391,18 +9391,9 @@
                     break;
                 case 'qr':
                     const qrImg = currentDragObject.querySelector('img');
-                    if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
+                    if (qrImg) {
                         const qrSize = options.size || 100;
                         ctx.drawImage(qrImg, centerX - qrSize/2, centerY - qrSize/2, qrSize, qrSize);
-                    } else if (qrImg) {
-                        // 圖片未載入完成，等待載入
-                        const tempImg = new Image();
-                        tempImg.crossOrigin = 'anonymous';
-                        tempImg.onload = function() {
-                            const qrSize = options.size || 100;
-                            ctx.drawImage(tempImg, centerX - qrSize/2, centerY - qrSize/2, qrSize, qrSize);
-                        };
-                        tempImg.src = qrImg.src;
                     }
                     break;
                 case 'sign':
@@ -9558,23 +9549,11 @@
         
         // 移除拖曳物件
         function removeDragObject() {
-            // 先移除所有事件監聽器
-            document.removeEventListener('mousemove', moveDragObject);
-            document.removeEventListener('mouseup', stopDragObject);
-            document.removeEventListener('touchmove', moveDragObjectTouch);
-            document.removeEventListener('touchend', stopDragObject);
-            
-            // 清除拖曳層
             const dragLayer = document.getElementById('dragLayer');
             if (dragLayer) {
                 dragLayer.innerHTML = '';
             }
-            
-            // 重置狀態
             currentDragObject = null;
-            isDraggingObject = false;
-            
-            // 隱藏控制按鈕
             const dragControls = document.getElementById('dragControls');
             if (dragControls) {
                 dragControls.classList.remove('show');
@@ -9804,7 +9783,7 @@
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(content)}&color=${fgColor.substring(1)}&bgcolor=${bgColor.substring(1)}`;
             
             const preview = document.getElementById('qrPreview');
-            preview.innerHTML = `<img src="${qrUrl}" alt="QR Code" id="qrImage" crossorigin="anonymous">`;
+            preview.innerHTML = `<img src="${qrUrl}" alt="QR Code" id="qrImage">`;
             
             showToast('📱 QR Code 已生成');
         }
@@ -9816,28 +9795,10 @@
                 return;
             }
             
-            // 確保圖片已載入
-            if (!qrImage.complete || qrImage.naturalWidth === 0) {
-                showToast('⏳ 圖片載入中，請稍候...');
-                qrImage.onload = function() {
-                    placeQR();
-                };
-                return;
-            }
-            
             const size = parseInt(document.getElementById('qrSize').value);
             
-            // 確保先清除之前的拖曳物件和事件
-            removeDragObject();
-            isDraggingObject = false;
-            
-            // 保存 QR 圖片的 src（避免被清除）
-            const qrSrc = qrImage.src;
-            
-            // 延遲一點點再創建，確保狀態完全重置
-            setTimeout(() => {
-                createDragObject('qr', qrSrc, { size }, qrPosition);
-            }, 50);
+            // 使用九宮格位置作為初始位置
+            createDragObject('qr', qrImage.src, { size }, qrPosition);
         }
         
         function placeQRAt(clickX, clickY) {
