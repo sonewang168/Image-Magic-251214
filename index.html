@@ -17529,11 +17529,6 @@
                 return;
             }
             
-            if (!currentImage && canvas.width === 300) {
-                showToast('⚠️ 請先載入圖片');
-                return;
-            }
-            
             showToast('💬 傳送中...');
             
             const imageData = canvas.toDataURL('image/png');
@@ -17550,6 +17545,7 @@
                 
                 await fetch(settings.gasUrl, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                     mode: 'no-cors'
                 });
