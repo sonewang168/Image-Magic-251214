@@ -6415,6 +6415,88 @@
                     <button class="wm-action-btn add" onclick="applyCinemaEffect()" style="margin-top:10px;">🎬 套用電影效果</button>
                 </div>
                 
+                <!-- 分離色調面板 -->
+                <div class="split-tone-panel" id="splitTonePanel">
+                    <div class="panel-title">🎨 分離色調</div>
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+                        <div class="tone-section">
+                            <label style="display:flex;align-items:center;gap:8px;">
+                                <span>☀️ 亮部色調</span>
+                                <input type="color" id="highlightTone" value="#ffd700" style="width:40px;height:30px;border:none;cursor:pointer;">
+                            </label>
+                            <div class="adjust-item" style="margin-top:5px;">
+                                <label>飽和度</label>
+                                <input type="range" id="highlightSat" min="0" max="100" value="25">
+                                <span id="highlightSatVal">25%</span>
+                            </div>
+                        </div>
+                        <div class="tone-section">
+                            <label style="display:flex;align-items:center;gap:8px;">
+                                <span>🌙 暗部色調</span>
+                                <input type="color" id="shadowTone" value="#4169e1" style="width:40px;height:30px;border:none;cursor:pointer;">
+                            </label>
+                            <div class="adjust-item" style="margin-top:5px;">
+                                <label>飽和度</label>
+                                <input type="range" id="shadowSat" min="0" max="100" value="25">
+                                <span id="shadowSatVal">25%</span>
+                            </div>
+                        </div>
+                        <div class="adjust-item">
+                            <label>平衡</label>
+                            <input type="range" id="toneBalance" min="-100" max="100" value="0">
+                            <span id="toneBalanceVal">0</span>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applySplitTone()" style="margin-top:10px;">🎨 套用分離色調</button>
+                </div>
+                
+                <!-- 取色器面板 -->
+                <div class="eyedropper-panel" id="eyeDropperAdvPanel">
+                    <div class="panel-title">💉 取色器</div>
+                    <div id="colorPreviewLarge" style="width:100%;height:60px;background:#888;border-radius:8px;margin-bottom:10px;"></div>
+                    <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+                        <div style="display:flex;justify-content:space-between;">
+                            <span>HEX:</span>
+                            <span id="colorHex">#888888</span>
+                            <button onclick="copyColor('hex')" style="padding:2px 8px;font-size:10px;cursor:pointer;">複製</button>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span>RGB:</span>
+                            <span id="colorRgb">rgb(136, 136, 136)</span>
+                            <button onclick="copyColor('rgb')" style="padding:2px 8px;font-size:10px;cursor:pointer;">複製</button>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span>HSL:</span>
+                            <span id="colorHsl">hsl(0, 0%, 53%)</span>
+                            <button onclick="copyColor('hsl')" style="padding:2px 8px;font-size:10px;cursor:pointer;">複製</button>
+                        </div>
+                    </div>
+                    <div id="colorHistory" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;"></div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:10px;">💡 點擊畫布任意位置取色</small>
+                </div>
+                
+                <!-- GIF 面板 -->
+                <div class="gif-panel" id="gifPanel">
+                    <div class="panel-title">🎬 GIF 動圖</div>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <div class="wm-option">
+                            <label>選擇多張圖片製作 GIF</label>
+                            <input type="file" id="gifFrameInput" multiple accept="image/*" onchange="addGifFrames(event)" style="margin-top:5px;">
+                        </div>
+                        <div class="wm-option">
+                            <label>每幀間隔 (毫秒)</label>
+                            <input type="range" id="gifDelay" min="50" max="1000" value="200" oninput="document.getElementById('gifDelayVal').textContent=this.value+'ms'">
+                            <span id="gifDelayVal">200ms</span>
+                        </div>
+                        <div id="gifFramePreview" style="display:flex;gap:5px;flex-wrap:wrap;max-height:100px;overflow-y:auto;"></div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="wm-action-btn" onclick="previewGif()" style="flex:1;">👁️ 預覽</button>
+                            <button class="wm-action-btn add" onclick="createGif()" style="flex:1;">🎬 產生 GIF</button>
+                        </div>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:10px;">💡 選擇 2 張以上圖片，設定間隔時間後產生</small>
+                </div>
+                
                 <!-- 文字編輯面板 -->
                 <div class="text-panel" id="textPanel">
                     <div class="panel-title">✍️ 文字編輯</div>
@@ -12051,13 +12133,24 @@
         
         function addGifFrames(e) {
             const files = e.target.files;
+            gifFrames = []; // 清空舊的
+            const preview = document.getElementById('gifFramePreview');
+            if (preview) preview.innerHTML = '';
+            
             for (const file of files) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const img = new Image();
                     img.onload = function() {
                         gifFrames.push(img);
-                        updateGifFrameList();
+                        // 顯示預覽縮圖
+                        if (preview) {
+                            const thumb = document.createElement('img');
+                            thumb.src = event.target.result;
+                            thumb.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:4px;border:2px solid var(--border);';
+                            preview.appendChild(thumb);
+                        }
+                        showToast(`📷 已載入 ${gifFrames.length} 張圖片`);
                     };
                     img.src = event.target.result;
                 };
@@ -12074,8 +12167,105 @@
             });
         }
         
+        let gifPreviewInterval = null;
+        
+        function previewGif() {
+            if (gifFrames.length < 2) {
+                showToast('⚠️ 請至少選擇 2 張圖片');
+                return;
+            }
+            
+            const delay = parseInt(document.getElementById('gifDelay')?.value || 200);
+            let currentFrame = 0;
+            
+            // 停止之前的預覽
+            if (gifPreviewInterval) {
+                clearInterval(gifPreviewInterval);
+                gifPreviewInterval = null;
+                showToast('⏹️ 預覽已停止');
+                return;
+            }
+            
+            showToast('▶️ 開始預覽（再點一次停止）');
+            
+            gifPreviewInterval = setInterval(() => {
+                const img = gifFrames[currentFrame];
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                currentFrame = (currentFrame + 1) % gifFrames.length;
+            }, delay);
+        }
+        
+        function createGif() {
+            if (gifFrames.length < 2) {
+                showToast('⚠️ 請至少選擇 2 張圖片');
+                return;
+            }
+            
+            // 停止預覽
+            if (gifPreviewInterval) {
+                clearInterval(gifPreviewInterval);
+                gifPreviewInterval = null;
+            }
+            
+            const delay = parseInt(document.getElementById('gifDelay')?.value || 200);
+            
+            showToast('🎬 正在產生 GIF...');
+            
+            // 使用 gif.js 庫（CDN）
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js';
+            script.onload = function() {
+                const gif = new GIF({
+                    workers: 2,
+                    quality: 10,
+                    width: gifFrames[0].width,
+                    height: gifFrames[0].height,
+                    workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+                });
+                
+                gifFrames.forEach(img => {
+                    gif.addFrame(img, { delay: delay });
+                });
+                
+                gif.on('finished', function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'animation.gif';
+                    a.click();
+                    showToast('✅ GIF 已下載！');
+                });
+                
+                gif.render();
+            };
+            script.onerror = function() {
+                // 備用方案：下載為多張圖
+                showToast('⚠️ GIF 庫載入失敗，改為下載 ZIP');
+                downloadFramesAsZip();
+            };
+            document.head.appendChild(script);
+        }
+        
+        function downloadFramesAsZip() {
+            gifFrames.forEach((img, i) => {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = img.width;
+                tempCanvas.height = img.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(img, 0, 0);
+                
+                const link = document.createElement('a');
+                link.download = `frame_${i + 1}.png`;
+                link.href = tempCanvas.toDataURL('image/png');
+                link.click();
+            });
+            showToast('✅ 已下載所有幀圖片');
+        }
+        
         function generateGif() {
-            showToast('🎬 GIF 製作需要額外程式庫');
+            createGif();
         }
         
         // ===== 調色盤 =====
@@ -12127,27 +12317,65 @@
             setTool('eyedropperAdv');
         }
         
+        let colorHistory = [];
+        
         function updateColorValues(r, g, b) {
             const preview = document.getElementById('colorPreviewLarge');
             if (preview) {
                 preview.style.backgroundColor = `rgb(${r},${g},${b})`;
-                preview.style.width = '100%';
-                preview.style.height = '60px';
-                preview.style.borderRadius = '10px';
-                preview.style.marginBottom = '10px';
             }
             
             const hex = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
-            document.getElementById('colorHex')?.setAttribute('value', hex);
-            document.getElementById('colorRgb')?.setAttribute('value', `rgb(${r}, ${g}, ${b})`);
+            const hexEl = document.getElementById('colorHex');
+            const rgbEl = document.getElementById('colorRgb');
+            const hslEl = document.getElementById('colorHsl');
+            
+            if (hexEl) hexEl.textContent = hex;
+            if (rgbEl) rgbEl.textContent = `rgb(${r}, ${g}, ${b})`;
             
             // HSL
             const hsl = rgbToHsl(r, g, b);
-            document.getElementById('colorHsl')?.setAttribute('value', `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`);
+            if (hslEl) hslEl.textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
             
-            // CMYK
-            const cmyk = rgbToCmyk(r, g, b);
-            document.getElementById('colorCmyk')?.setAttribute('value', `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`);
+            // 添加到歷史
+            addColorToHistory(hex);
+        }
+        
+        function addColorToHistory(hex) {
+            if (colorHistory.includes(hex)) return;
+            colorHistory.unshift(hex);
+            if (colorHistory.length > 10) colorHistory.pop();
+            
+            const container = document.getElementById('colorHistory');
+            if (container) {
+                container.innerHTML = colorHistory.map(c => 
+                    `<div onclick="copyColor('custom','${c}')" style="width:25px;height:25px;background:${c};border-radius:4px;cursor:pointer;border:2px solid var(--border);" title="${c}"></div>`
+                ).join('');
+            }
+        }
+        
+        function copyColor(type, customColor) {
+            let text = '';
+            switch(type) {
+                case 'hex':
+                    text = document.getElementById('colorHex')?.textContent || '';
+                    break;
+                case 'rgb':
+                    text = document.getElementById('colorRgb')?.textContent || '';
+                    break;
+                case 'hsl':
+                    text = document.getElementById('colorHsl')?.textContent || '';
+                    break;
+                case 'custom':
+                    text = customColor || '';
+                    break;
+            }
+            
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('✅ 已複製：' + text);
+                });
+            }
         }
         
         function rgbToHsl(r, g, b) {
@@ -13414,7 +13642,8 @@
                 'curvesPanel', 'channelMixerPanel', 'colorBalancePanel', 'vibranPanel',
                 'hslPanel', 'splitTonePanel', 'lensPanel', 'chromaticPanel', 'filmGrainPanel',
                 'arrowPanel', 'printPanel', 'sharePanel', 'cloudPanel', 'shortcutPanel', 'helpPanel',
-                'colorGradePanel', 'lutPanel', 'vintagePanel', 'filmPanel', 'cinemaPanel'
+                'colorGradePanel', 'lutPanel', 'vintagePanel', 'filmPanel', 'cinemaPanel',
+                'splitTonePanel', 'eyeDropperAdvPanel', 'gifPanel'
             ];
             
             // 關閉其他面板
@@ -15500,6 +15729,9 @@
                 document.getElementById('brushBtn').classList.remove('active');
                 document.getElementById('shapeBtn').classList.remove('active');
                 document.getElementById('selectBtn2')?.classList.remove('active');
+                document.getElementById('eyeDropperAdvBtn')?.classList.remove('active');
+                document.getElementById('lassoBtn')?.classList.remove('active');
+                document.getElementById('magicWandBtn')?.classList.remove('active');
                 canvas.style.cursor = 'default';
                 showToast('🔓 工具已取消');
                 return;
@@ -15514,8 +15746,11 @@
             document.getElementById('arrowBtn').classList.toggle('active', tool === 'arrow');
             document.getElementById('brushBtn').classList.toggle('active', tool === 'brush');
             document.getElementById('shapeBtn').classList.toggle('active', tool === 'shape');
+            document.getElementById('eyeDropperAdvBtn')?.classList.toggle('active', tool === 'eyedropperAdv');
+            document.getElementById('lassoBtn')?.classList.toggle('active', tool === 'lasso');
+            document.getElementById('magicWandBtn')?.classList.toggle('active', tool === 'magicWand');
             
-            const cursorTools = ['select', 'mosaic', 'arrow', 'brush', 'shape'];
+            const cursorTools = ['select', 'mosaic', 'arrow', 'brush', 'shape', 'eyedropperAdv', 'lasso', 'magicWand'];
             canvas.style.cursor = cursorTools.includes(tool) ? 'crosshair' : 'default';
             
             // 顯示提示
@@ -15524,7 +15759,10 @@
                 'mosaic': '🔲 拖曳打馬賽克（再點一次取消）',
                 'arrow': '➡️ 拖曳畫箭頭（再點一次取消）',
                 'brush': '🖌️ 在畫布上繪製（再點一次取消）',
-                'shape': '⭕ 拖曳繪製形狀（再點一次取消）'
+                'shape': '⭕ 拖曳繪製形狀（再點一次取消）',
+                'eyedropperAdv': '💉 點擊畫布取色',
+                'lasso': '🔗 拖曳繪製選取區域',
+                'magicWand': '🪄 點擊選取相似顏色區域'
             };
             if (tips[tool]) {
                 showToast(tips[tool]);
@@ -15551,6 +15789,19 @@
                 lastX = coords.x;
                 lastY = coords.y;
                 saveHistory();
+                return;
+            }
+            
+            // 取色器工具
+            if (currentTool === 'eyedropperAdv') {
+                const pixel = ctx.getImageData(coords.x, coords.y, 1, 1).data;
+                updateColorValues(pixel[0], pixel[1], pixel[2]);
+                return;
+            }
+            
+            // 魔術棒工具
+            if (currentTool === 'magicWand') {
+                magicWandSelect(coords.x, coords.y);
                 return;
             }
             
@@ -15744,6 +15995,68 @@
             box.style.top = y + 'px';
             box.style.width = w + 'px';
             box.style.height = h + 'px';
+        }
+        
+        // ===== 魔術棒選取 =====
+        function magicWandSelect(startX, startY, tolerance = 32) {
+            saveHistory();
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // 取得起始點顏色
+            const startIdx = (startY * width + startX) * 4;
+            const targetR = data[startIdx];
+            const targetG = data[startIdx + 1];
+            const targetB = data[startIdx + 2];
+            
+            // 標記已訪問
+            const visited = new Set();
+            const selected = [];
+            const queue = [[startX, startY]];
+            
+            while (queue.length > 0) {
+                const [x, y] = queue.shift();
+                const key = `${x},${y}`;
+                
+                if (visited.has(key) || x < 0 || x >= width || y < 0 || y >= height) continue;
+                visited.add(key);
+                
+                const idx = (y * width + x) * 4;
+                const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+                
+                // 檢查顏色是否相似
+                const diff = Math.abs(r - targetR) + Math.abs(g - targetG) + Math.abs(b - targetB);
+                if (diff <= tolerance * 3) {
+                    selected.push([x, y]);
+                    queue.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+                }
+            }
+            
+            // 標記選中區域（用半透明紅色）
+            selected.forEach(([x, y]) => {
+                const idx = (y * width + x) * 4;
+                data[idx] = Math.min(255, data[idx] + 50);     // 增加紅色
+                data[idx + 1] = Math.max(0, data[idx + 1] - 20);
+                data[idx + 2] = Math.max(0, data[idx + 2] - 20);
+            });
+            
+            ctx.putImageData(imageData, 0, 0);
+            showToast(`🪄 已選取 ${selected.length} 個像素`);
+            
+            // 儲存選取區域的邊界
+            if (selected.length > 0) {
+                const xs = selected.map(p => p[0]);
+                const ys = selected.map(p => p[1]);
+                currentSelection = {
+                    x: Math.min(...xs),
+                    y: Math.min(...ys),
+                    width: Math.max(...xs) - Math.min(...xs),
+                    height: Math.max(...ys) - Math.min(...ys)
+                };
+            }
         }
         
         // ===== 清除選取區域 =====
