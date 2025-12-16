@@ -4452,7 +4452,7 @@
                 <button class="tool-btn" id="brushBtn" onclick="showBrushPanel()" disabled><span class="icon">🖌️</span>畫筆</button>
                 <button class="tool-btn" id="shapeBtn" onclick="showShapePanel()" disabled><span class="icon">⭕</span>形狀</button>
                 <button class="tool-btn" id="textFxBtn" onclick="showTextFxPanel()" disabled><span class="icon">🔤</span>文字特效</button>
-                <button class="tool-btn" id="templateBtn" onclick="showTemplatePanel()" disabled><span class="icon">📋</span>模板</button>
+                <button class="tool-btn" id="templateBtn" onclick="showTemplatePanel()"><span class="icon">📋</span>模板</button>
                 <button class="tool-btn" id="collageBtn" onclick="showCollagePanel()" disabled><span class="icon">🧩</span>拼貼</button>
                 <button class="tool-btn" id="beautyBtn" onclick="showBeautyPanel()" disabled><span class="icon">✨</span>美顏</button>
                 <button class="tool-btn" id="removeBgBtn" onclick="showRemoveBgPanel()" disabled><span class="icon">🎭</span>去背</button>
@@ -4553,8 +4553,8 @@
                 <button class="tool-btn" id="printBtn" onclick="showPrintPanel()" disabled><span class="icon">🖨️</span>列印</button>
                 <button class="tool-btn" id="shareBtn" onclick="showSharePanel()" disabled><span class="icon">📤</span>分享</button>
                 <button class="tool-btn" id="cloudBtn" onclick="showCloudPanel()" disabled><span class="icon">☁️</span>雲端</button>
-                <button class="tool-btn" id="shortcutBtn" onclick="showShortcutPanel()" disabled><span class="icon">⌨️</span>快捷鍵</button>
-                <button class="tool-btn" id="themeBtn" onclick="toggleTheme()" disabled><span class="icon">🎨</span>主題</button>
+                <button class="tool-btn" id="shortcutBtn" onclick="showShortcutPanel()"><span class="icon">⌨️</span>快捷鍵</button>
+                <button class="tool-btn" id="themeBtn" onclick="toggleTheme()"><span class="icon">🎨</span>主題</button>
                 <button class="tool-btn" id="helpBtn" onclick="showHelpPanel()"><span class="icon">❓</span>說明</button>
             </div>
             
@@ -6331,6 +6331,90 @@
                     </div>
                 </div>
                 
+                <!-- 調色面板 -->
+                <div class="color-grade-panel" id="colorGradePanel">
+                    <div class="panel-title">🎬 電影調色</div>
+                    <div class="preset-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyColorGrade('teal-orange')" style="background:linear-gradient(135deg,#008080,#ff6600);">🌊 青橙</button>
+                        <button class="wm-action-btn" onclick="applyColorGrade('noir')" style="background:linear-gradient(135deg,#1a1a1a,#4a4a4a);">🎬 黑色電影</button>
+                        <button class="wm-action-btn" onclick="applyColorGrade('matrix')" style="background:linear-gradient(135deg,#003300,#00ff00);">💚 駭客任務</button>
+                        <button class="wm-action-btn" onclick="applyColorGrade('sepia-cinema')" style="background:linear-gradient(135deg,#704214,#c4a35a);">📜 復古褐</button>
+                        <button class="wm-action-btn" onclick="applyColorGrade('blade-runner')" style="background:linear-gradient(135deg,#ff6b00,#0066ff);">🌃 銀翼殺手</button>
+                        <button class="wm-action-btn" onclick="applyColorGrade('horror')" style="background:linear-gradient(135deg,#8b0000,#2d0000);">👻 恐怖片</button>
+                        <button class="wm-action-btn" onclick="applyColorGrade('romance')" style="background:linear-gradient(135deg,#ffb6c1,#ff69b4);">💕 浪漫</button>
+                        <button class="wm-action-btn" onclick="applyColorGrade('action')" style="background:linear-gradient(135deg,#ff4500,#1e90ff);">💥 動作片</button>
+                    </div>
+                </div>
+                
+                <!-- LUT 面板 -->
+                <div class="lut-panel" id="lutPanel">
+                    <div class="panel-title">🎥 LUT 濾鏡</div>
+                    <div class="preset-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyLut('fuji')" style="background:linear-gradient(135deg,#2e8b57,#98fb98);">🎞️ Fuji 富士</button>
+                        <button class="wm-action-btn" onclick="applyLut('kodak')" style="background:linear-gradient(135deg,#daa520,#ffd700);">🎞️ Kodak 柯達</button>
+                        <button class="wm-action-btn" onclick="applyLut('cinematic')" style="background:linear-gradient(135deg,#483d8b,#7b68ee);">🎬 電影感</button>
+                        <button class="wm-action-btn" onclick="applyLut('portrait')" style="background:linear-gradient(135deg,#deb887,#f5deb3);">👤 人像</button>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:10px;">💡 LUT 是專業調色預設，可快速套用電影質感</small>
+                </div>
+                
+                <!-- 復古面板 -->
+                <div class="vintage-panel" id="vintagePanel">
+                    <div class="panel-title">📻 復古效果</div>
+                    <div class="preset-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyVintagePreset('60s')" style="background:linear-gradient(135deg,#cd853f,#f4a460);">📺 60年代</button>
+                        <button class="wm-action-btn" onclick="applyVintagePreset('70s')" style="background:linear-gradient(135deg,#d2691e,#ff8c00);">🕺 70年代</button>
+                        <button class="wm-action-btn" onclick="applyVintagePreset('80s')" style="background:linear-gradient(135deg,#ff1493,#00ffff);">🎸 80年代</button>
+                        <button class="wm-action-btn" onclick="applyVintagePreset('90s')" style="background:linear-gradient(135deg,#808080,#c0c0c0);">💾 90年代</button>
+                        <button class="wm-action-btn" onclick="applyVintagePreset('polaroid')" style="background:linear-gradient(135deg,#f5f5dc,#fffacd);">📸 拍立得</button>
+                        <button class="wm-action-btn" onclick="applyVintagePreset('daguerreotype')" style="background:linear-gradient(135deg,#696969,#a9a9a9);">🖼️ 銀版攝影</button>
+                    </div>
+                </div>
+                
+                <!-- 底片面板 -->
+                <div class="film-panel" id="filmPanel">
+                    <div class="panel-title">🎞️ 底片模擬</div>
+                    <div class="preset-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyFilmEffect('portra400')" style="background:linear-gradient(135deg,#deb887,#f5deb3);">📷 Portra 400</button>
+                        <button class="wm-action-btn" onclick="applyFilmEffect('ektar100')" style="background:linear-gradient(135deg,#ff6347,#ffa07a);">📷 Ektar 100</button>
+                        <button class="wm-action-btn" onclick="applyFilmEffect('velvia50')" style="background:linear-gradient(135deg,#228b22,#32cd32);">📷 Velvia 50</button>
+                        <button class="wm-action-btn" onclick="applyFilmEffect('provia100')" style="background:linear-gradient(135deg,#4682b4,#87ceeb);">📷 Provia 100</button>
+                        <button class="wm-action-btn" onclick="applyFilmEffect('cinestill800')" style="background:linear-gradient(135deg,#ff4500,#ffd700);">📷 CineStill 800</button>
+                        <button class="wm-action-btn" onclick="applyFilmEffect('trix400')" style="background:linear-gradient(135deg,#2f2f2f,#5f5f5f);">📷 Tri-X 400</button>
+                    </div>
+                </div>
+                
+                <!-- 電影效果面板 -->
+                <div class="cinema-panel" id="cinemaPanel">
+                    <div class="panel-title">🎬 電影效果</div>
+                    <div class="cinema-options" style="display:flex;flex-direction:column;gap:10px;">
+                        <div class="wm-option">
+                            <label>畫面比例</label>
+                            <select id="cinemaRatio" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="2.35">2.35:1 寬銀幕</option>
+                                <option value="2.39">2.39:1 變形寬銀幕</option>
+                                <option value="1.85">1.85:1 標準寬銀幕</option>
+                                <option value="1.33">4:3 經典</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" id="cinemaLetterbox" checked style="width:18px;height:18px;">
+                                <span>🎬 電影黑邊 (Letterbox)</span>
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" id="cinemaGrain" style="width:18px;height:18px;">
+                                <span>🎞️ 底片顆粒</span>
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" id="cinemaVignette" style="width:18px;height:18px;">
+                                <span>🔲 暗角效果</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyCinemaEffect()" style="margin-top:10px;">🎬 套用電影效果</button>
+                </div>
+                
                 <!-- 文字編輯面板 -->
                 <div class="text-panel" id="textPanel">
                     <div class="panel-title">✍️ 文字編輯</div>
@@ -7018,7 +7102,7 @@
                 'miniatureBtn', 'infraredBtn', 'crossProcessBtn', 'bleachBypassBtn',
                 'splitToneBtn', 'colorGradeBtn', 'lutBtn', 'vintageBtn', 'filmBtn',
                 'cinemaBtn', 'printBtn', 'shareBtn', 'cloudBtn', 'shortcutBtn',
-                'themeBtn', 'langBtn'
+                'themeBtn', 'selectBtn2'
             ];
             buttons.forEach(id => {
                 const btn = document.getElementById(id);
@@ -7031,6 +7115,20 @@
             updateImageInfo();
             initLayers();
         }
+        
+        // 初始化：讓一些基本功能始終可用（不需要載入圖片）
+        function enableBasicButtons() {
+            const alwaysEnabled = [
+                'helpBtn', 'shortcutBtn', 'themeBtn', 'templateBtn', 'settingsNavBtn'
+            ];
+            alwaysEnabled.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = false;
+            });
+        }
+        
+        // 頁面載入時啟用基本按鈕
+        document.addEventListener('DOMContentLoaded', enableBasicButtons);
         
         // ===== AI 分析功能 =====
         function showAIPanel() {
@@ -12554,8 +12652,55 @@
         
         function applyLut(preset) {
             saveHistory();
-            // 簡化的 LUT 效果
-            applyColorGrade(preset === 'fuji' ? 'romance' : preset === 'kodak' ? 'sepia-cinema' : 'teal-orange');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+                
+                switch(preset) {
+                    case 'fuji': // 富士：柔和綠色，膚色自然
+                        r = Math.min(255, r * 0.98);
+                        g = Math.min(255, g * 1.05 + 5);
+                        b = Math.min(255, b * 0.95);
+                        break;
+                    case 'kodak': // 柯達：暖色調，金黃
+                        r = Math.min(255, r * 1.08 + 10);
+                        g = Math.min(255, g * 1.02 + 5);
+                        b = Math.min(255, b * 0.9);
+                        break;
+                    case 'cinematic': // 電影感：青橙分離
+                        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                        if (lum > 128) {
+                            r = Math.min(255, r * 1.1 + 15);
+                            g = Math.min(255, g * 0.95);
+                        } else {
+                            g = Math.min(255, g * 1.05);
+                            b = Math.min(255, b * 1.15 + 10);
+                        }
+                        break;
+                    case 'portrait': // 人像：膚色優化
+                        const warmth = 1.05;
+                        r = Math.min(255, r * warmth + 8);
+                        g = Math.min(255, g * 1.02 + 3);
+                        b = Math.min(255, b * 0.98);
+                        break;
+                }
+                
+                data[i] = r;
+                data[i+1] = g;
+                data[i+2] = b;
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            const lutNames = {
+                'fuji': 'Fuji 富士',
+                'kodak': 'Kodak 柯達',
+                'cinematic': '電影感',
+                'portrait': '人像'
+            };
+            showToast('🎥 ' + (lutNames[preset] || preset) + ' LUT 已套用');
         }
         
         // ===== 復古效果 =====
@@ -12614,10 +12759,70 @@
         }
         
         function applyFilm(film) {
+            applyFilmEffect(film);
+        }
+        
+        function applyFilmEffect(film) {
             saveHistory();
-            // 簡化的底片模擬
-            applyVintagePreset('polaroid');
-            showToast('🎞️ ' + film + ' 底片效果已套用');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+                
+                switch(film) {
+                    case 'portra400': // 柔和膚色，低對比
+                        r = Math.min(255, r * 1.05 + 5);
+                        g = Math.min(255, g * 1.02);
+                        b = Math.min(255, b * 0.95);
+                        break;
+                    case 'ektar100': // 高飽和，鮮豔
+                        const satE = 1.3;
+                        const grayE = 0.299 * r + 0.587 * g + 0.114 * b;
+                        r = Math.min(255, grayE + (r - grayE) * satE);
+                        g = Math.min(255, grayE + (g - grayE) * satE);
+                        b = Math.min(255, grayE + (b - grayE) * satE);
+                        break;
+                    case 'velvia50': // 超高飽和，偏綠
+                        const satV = 1.4;
+                        const grayV = 0.299 * r + 0.587 * g + 0.114 * b;
+                        r = Math.min(255, grayV + (r - grayV) * satV);
+                        g = Math.min(255, grayV + (g - grayV) * satV * 1.1);
+                        b = Math.min(255, grayV + (b - grayV) * satV);
+                        break;
+                    case 'provia100': // 自然色彩
+                        r = Math.min(255, r * 1.02);
+                        g = Math.min(255, g * 1.05);
+                        b = Math.min(255, b * 1.08);
+                        break;
+                    case 'cinestill800': // 暖色調，霓虹光暈
+                        r = Math.min(255, r * 1.15 + 10);
+                        g = Math.min(255, g * 0.95);
+                        b = Math.min(255, b * 0.85);
+                        break;
+                    case 'trix400': // 黑白高對比
+                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                        const contrast = (gray - 128) * 1.3 + 128;
+                        r = g = b = Math.min(255, Math.max(0, contrast));
+                        break;
+                }
+                
+                data[i] = r;
+                data[i+1] = g;
+                data[i+2] = b;
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            const filmNames = {
+                'portra400': 'Portra 400',
+                'ektar100': 'Ektar 100',
+                'velvia50': 'Velvia 50',
+                'provia100': 'Provia 100',
+                'cinestill800': 'CineStill 800',
+                'trix400': 'Tri-X 400'
+            };
+            showToast('🎞️ ' + (filmNames[film] || film) + ' 底片效果已套用');
         }
         
         // ===== 電影效果 =====
@@ -13208,7 +13413,8 @@
                 'clonePanel', 'healPanel', 'redeyePanel', 'whiteBalancePanel', 'levelsPanel',
                 'curvesPanel', 'channelMixerPanel', 'colorBalancePanel', 'vibranPanel',
                 'hslPanel', 'splitTonePanel', 'lensPanel', 'chromaticPanel', 'filmGrainPanel',
-                'arrowPanel', 'printPanel', 'sharePanel', 'cloudPanel', 'shortcutPanel', 'helpPanel'
+                'arrowPanel', 'printPanel', 'sharePanel', 'cloudPanel', 'shortcutPanel', 'helpPanel',
+                'colorGradePanel', 'lutPanel', 'vintagePanel', 'filmPanel', 'cinemaPanel'
             ];
             
             // 關閉其他面板
