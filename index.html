@@ -6214,6 +6214,415 @@
                     <button class="wm-action-btn add" onclick="applyLevels()">📊 套用色階</button>
                 </div>
                 
+                <!-- 相片濾鏡面板 -->
+                <div class="photo-filter-panel" id="photoFilterPanel">
+                    <div class="panel-title">📷 相片濾鏡</div>
+                    <div class="filter-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyPhotoFilter('warm')" style="background:linear-gradient(135deg,#ff9966,#ff5e62);">🌅 暖色</button>
+                        <button class="wm-action-btn" onclick="applyPhotoFilter('cool')" style="background:linear-gradient(135deg,#667eea,#764ba2);">❄️ 冷色</button>
+                        <button class="wm-action-btn" onclick="applyPhotoFilter('sunset')" style="background:linear-gradient(135deg,#f093fb,#f5576c);">🌇 日落</button>
+                        <button class="wm-action-btn" onclick="applyPhotoFilter('forest')" style="background:linear-gradient(135deg,#11998e,#38ef7d);">🌲 森林</button>
+                        <button class="wm-action-btn" onclick="applyPhotoFilter('ocean')" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);">🌊 海洋</button>
+                        <button class="wm-action-btn" onclick="applyPhotoFilter('sepia')" style="background:linear-gradient(135deg,#c79081,#dfa579);">📜 復古褐</button>
+                    </div>
+                </div>
+                
+                <!-- 選擇性調色面板 -->
+                <div class="selective-color-panel" id="selectiveColorPanel">
+                    <div class="panel-title">🎯 選擇性調色</div>
+                    <div class="selective-options">
+                        <div class="wm-option">
+                            <label>目標顏色</label>
+                            <select id="selectiveTarget" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="red">🔴 紅色</option>
+                                <option value="orange">🟠 橙色</option>
+                                <option value="yellow">🟡 黃色</option>
+                                <option value="green">🟢 綠色</option>
+                                <option value="cyan">🔵 青色</option>
+                                <option value="blue">💙 藍色</option>
+                                <option value="purple">💜 紫色</option>
+                            </select>
+                        </div>
+                        <div class="adjust-item">
+                            <label>色相偏移</label>
+                            <input type="range" id="selectiveHue" min="-30" max="30" value="0">
+                            <span id="selectiveHueVal">0°</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>飽和度</label>
+                            <input type="range" id="selectiveSat" min="-100" max="100" value="0">
+                            <span id="selectiveSatVal">0</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>明度</label>
+                            <input type="range" id="selectiveLight" min="-100" max="100" value="0">
+                            <span id="selectiveLightVal">0</span>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applySelectiveColor()">🎯 套用選擇性調色</button>
+                </div>
+                
+                <!-- 色彩平衡面板 -->
+                <div class="color-balance-panel" id="colorBalancePanel">
+                    <div class="panel-title">⚖️ 色彩平衡</div>
+                    <div class="balance-sliders">
+                        <div class="adjust-item">
+                            <label>青色 ↔ 紅色</label>
+                            <input type="range" id="balanceCyanRed" min="-100" max="100" value="0">
+                            <span id="balanceCRVal">0</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>洋紅 ↔ 綠色</label>
+                            <input type="range" id="balanceMagentaGreen" min="-100" max="100" value="0">
+                            <span id="balanceMGVal">0</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>黃色 ↔ 藍色</label>
+                            <input type="range" id="balanceYellowBlue" min="-100" max="100" value="0">
+                            <span id="balanceYBVal">0</span>
+                        </div>
+                        <div class="wm-option" style="margin-top:10px;">
+                            <label>調整範圍</label>
+                            <select id="balanceRange" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="shadows">暗部</option>
+                                <option value="midtones" selected>中間調</option>
+                                <option value="highlights">亮部</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyColorBalance()">⚖️ 套用色彩平衡</button>
+                </div>
+                
+                <!-- 直方圖面板 -->
+                <div class="histogram-panel" id="histogramPanel">
+                    <div class="panel-title">📊 直方圖</div>
+                    <canvas id="histogramCanvas" width="280" height="150" style="width:100%;background:#1a1a2e;border-radius:8px;"></canvas>
+                    <div style="display:flex;gap:5px;margin-top:10px;">
+                        <button class="wm-action-btn" onclick="drawHistogram('all')" style="flex:1;font-size:11px;">全部</button>
+                        <button class="wm-action-btn" onclick="drawHistogram('red')" style="flex:1;font-size:11px;background:#f44;">紅</button>
+                        <button class="wm-action-btn" onclick="drawHistogram('green')" style="flex:1;font-size:11px;background:#4f4;">綠</button>
+                        <button class="wm-action-btn" onclick="drawHistogram('blue')" style="flex:1;font-size:11px;background:#44f;">藍</button>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 顯示圖片的色調分佈</small>
+                </div>
+                
+                <!-- 曲線面板 -->
+                <div class="curve-panel" id="curvePanel">
+                    <div class="panel-title">📈 曲線調整</div>
+                    <canvas id="curveCanvas" width="200" height="200" style="width:100%;background:#1a1a2e;border-radius:8px;cursor:crosshair;"></canvas>
+                    <div style="display:flex;gap:5px;margin-top:10px;">
+                        <button class="wm-action-btn" onclick="setCurveChannel('rgb')" style="flex:1;font-size:11px;">RGB</button>
+                        <button class="wm-action-btn" onclick="setCurveChannel('red')" style="flex:1;font-size:11px;background:#f44;">R</button>
+                        <button class="wm-action-btn" onclick="setCurveChannel('green')" style="flex:1;font-size:11px;background:#4f4;">G</button>
+                        <button class="wm-action-btn" onclick="setCurveChannel('blue')" style="flex:1;font-size:11px;background:#44f;">B</button>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyCurve()" style="margin-top:10px;">📈 套用曲線</button>
+                </div>
+                
+                <!-- 液化面板 -->
+                <div class="liquify-panel" id="liquifyPanel">
+                    <div class="panel-title">💧 液化工具</div>
+                    <div class="liquify-tools" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="setLiquifyTool('push')">👆 推移</button>
+                        <button class="wm-action-btn" onclick="setLiquifyTool('bloat')">🔴 膨脹</button>
+                        <button class="wm-action-btn" onclick="setLiquifyTool('pucker')">⚫ 收縮</button>
+                        <button class="wm-action-btn" onclick="setLiquifyTool('twirl')">🌀 扭轉</button>
+                    </div>
+                    <div class="adjust-item" style="margin-top:10px;">
+                        <label>筆刷大小</label>
+                        <input type="range" id="liquifySize" min="10" max="100" value="30">
+                        <span id="liquifySizeVal">30</span>
+                    </div>
+                    <div class="adjust-item">
+                        <label>強度</label>
+                        <input type="range" id="liquifyStrength" min="1" max="100" value="50">
+                        <span id="liquifyStrengthVal">50</span>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 在畫布上拖曳進行液化</small>
+                </div>
+                
+                <!-- 圖層面板 -->
+                <div class="layer-panel" id="layerPanel">
+                    <div class="panel-title">📚 圖層</div>
+                    <div id="layerList" style="max-height:200px;overflow-y:auto;"></div>
+                    <div style="display:flex;gap:8px;margin-top:10px;">
+                        <button class="wm-action-btn" onclick="addLayer()" style="flex:1;">➕ 新增</button>
+                        <button class="wm-action-btn" onclick="duplicateLayer()" style="flex:1;">📋 複製</button>
+                        <button class="wm-action-btn" onclick="deleteLayer()" style="flex:1;">🗑️ 刪除</button>
+                    </div>
+                    <div class="adjust-item" style="margin-top:10px;">
+                        <label>不透明度</label>
+                        <input type="range" id="layerOpacity" min="0" max="100" value="100">
+                        <span id="layerOpacityVal">100%</span>
+                    </div>
+                </div>
+                
+                <!-- 色版面板 -->
+                <div class="channel-panel" id="channelPanel">
+                    <div class="panel-title">📺 色版</div>
+                    <div class="channel-list" style="display:flex;flex-direction:column;gap:8px;">
+                        <button class="wm-action-btn" onclick="showChannel('rgb')">🎨 RGB 全彩</button>
+                        <button class="wm-action-btn" onclick="showChannel('red')" style="background:#c44;">🔴 紅色色版</button>
+                        <button class="wm-action-btn" onclick="showChannel('green')" style="background:#4c4;">🟢 綠色色版</button>
+                        <button class="wm-action-btn" onclick="showChannel('blue')" style="background:#44c;">🔵 藍色色版</button>
+                        <button class="wm-action-btn" onclick="showChannel('alpha')" style="background:#888;">⬜ Alpha 色版</button>
+                    </div>
+                </div>
+                
+                <!-- 對齊面板 -->
+                <div class="align-panel" id="alignPanel">
+                    <div class="panel-title">📐 對齊工具</div>
+                    <div class="align-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="alignSelection('left')">⬅️</button>
+                        <button class="wm-action-btn" onclick="alignSelection('centerH')">↔️</button>
+                        <button class="wm-action-btn" onclick="alignSelection('right')">➡️</button>
+                        <button class="wm-action-btn" onclick="alignSelection('top')">⬆️</button>
+                        <button class="wm-action-btn" onclick="alignSelection('centerV')">↕️</button>
+                        <button class="wm-action-btn" onclick="alignSelection('bottom')">⬇️</button>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 先選取區域再對齊</small>
+                </div>
+                
+                <!-- 參考線面板 -->
+                <div class="guide-panel" id="guidePanel">
+                    <div class="panel-title">📍 參考線</div>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <button class="wm-action-btn" onclick="addGuide('horizontal')">➖ 新增水平線</button>
+                        <button class="wm-action-btn" onclick="addGuide('vertical')">| 新增垂直線</button>
+                        <button class="wm-action-btn" onclick="addGuide('center')">➕ 中心十字線</button>
+                        <button class="wm-action-btn" onclick="addGuide('thirds')">🔲 三分法格線</button>
+                        <button class="wm-action-btn" onclick="clearGuides()" style="background:#f44;">🗑️ 清除所有</button>
+                    </div>
+                </div>
+                
+                <!-- 點陣圖面板 -->
+                <div class="dot-art-panel" id="dotArtPanel">
+                    <div class="panel-title">⚫ 點陣圖效果</div>
+                    <div class="dot-options">
+                        <div class="adjust-item">
+                            <label>點大小</label>
+                            <input type="range" id="dotSize" min="2" max="20" value="5">
+                            <span id="dotSizeVal">5</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>點間距</label>
+                            <input type="range" id="dotSpacing" min="3" max="30" value="8">
+                            <span id="dotSpacingVal">8</span>
+                        </div>
+                        <div class="wm-option">
+                            <label>點樣式</label>
+                            <select id="dotStyle" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="circle">⚫ 圓形</option>
+                                <option value="square">⬛ 方形</option>
+                                <option value="diamond">🔷 菱形</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyDotArt()">⚫ 套用點陣效果</button>
+                </div>
+                
+                <!-- 局部彩色面板 -->
+                <div class="color-splash-panel" id="colorSplashPanel">
+                    <div class="panel-title">💦 局部彩色</div>
+                    <div class="splash-options">
+                        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;">保留選取的顏色，其餘轉為黑白</p>
+                        <div class="wm-option">
+                            <label>保留顏色</label>
+                            <input type="color" id="splashColor" value="#ff0000" style="width:100%;height:40px;border:none;cursor:pointer;">
+                        </div>
+                        <div class="adjust-item">
+                            <label>容差</label>
+                            <input type="range" id="splashTolerance" min="10" max="100" value="30">
+                            <span id="splashToleranceVal">30</span>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyColorSplash()">💦 套用局部彩色</button>
+                </div>
+                
+                <!-- 瘦臉面板 -->
+                <div class="slim-face-panel" id="slimFacePanel">
+                    <div class="panel-title">🧑 瘦臉工具</div>
+                    <div class="face-options">
+                        <div class="adjust-item">
+                            <label>瘦臉程度</label>
+                            <input type="range" id="slimAmount" min="0" max="100" value="30">
+                            <span id="slimAmountVal">30%</span>
+                        </div>
+                        <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 此功能需要 AI 模型支援，目前提供模擬效果</small>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applySlimFace()">🧑 套用瘦臉</button>
+                </div>
+                
+                <!-- 大眼面板 -->
+                <div class="big-eye-panel" id="bigEyePanel">
+                    <div class="panel-title">👀 大眼工具</div>
+                    <div class="eye-options">
+                        <div class="adjust-item">
+                            <label>放大程度</label>
+                            <input type="range" id="eyeEnlarge" min="0" max="100" value="20">
+                            <span id="eyeEnlargeVal">20%</span>
+                        </div>
+                        <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 此功能需要 AI 模型支援，目前提供模擬效果</small>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyBigEye()">👀 套用大眼</button>
+                </div>
+                
+                <!-- 彩妝面板 -->
+                <div class="makeup-panel" id="makeupPanel">
+                    <div class="panel-title">💄 彩妝工具</div>
+                    <div class="makeup-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyMakeup('lipstick')">💋 口紅</button>
+                        <button class="wm-action-btn" onclick="applyMakeup('blush')">🌸 腮紅</button>
+                        <button class="wm-action-btn" onclick="applyMakeup('eyeshadow')">👁️ 眼影</button>
+                        <button class="wm-action-btn" onclick="applyMakeup('eyeliner')">✏️ 眼線</button>
+                    </div>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:10px;">💡 此功能需要 AI 人臉檢測</small>
+                </div>
+                
+                <!-- 換臉面板 -->
+                <div class="face-swap-panel" id="faceSwapPanel">
+                    <div class="panel-title">🎭 換臉工具</div>
+                    <div class="swap-options">
+                        <input type="file" id="faceSwapInput" accept="image/*" style="margin-bottom:10px;">
+                        <small style="color:var(--text-secondary);font-size:10px;display:block;">選擇要替換的臉部圖片</small>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyFaceSwap()">🎭 開始換臉</button>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">⚠️ 此功能需要進階 AI 模型</small>
+                </div>
+                
+                <!-- 骨架面板 -->
+                <div class="skeleton-panel" id="skeletonPanel">
+                    <div class="panel-title">🦴 骨架檢測</div>
+                    <div class="skeleton-options">
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                            <input type="checkbox" id="showSkeleton" style="width:18px;height:18px;">
+                            <span>顯示骨架線條</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;">
+                            <input type="checkbox" id="showKeypoints" checked style="width:18px;height:18px;">
+                            <span>顯示關節點</span>
+                        </label>
+                    </div>
+                    <button class="wm-action-btn add" onclick="detectSkeleton()">🦴 檢測骨架</button>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 需要 AI 姿態檢測模型</small>
+                </div>
+                
+                <!-- 鏡頭模糊面板 -->
+                <div class="lens-blur-panel" id="lensBlurPanel">
+                    <div class="panel-title">📷 鏡頭模糊</div>
+                    <div class="blur-options">
+                        <div class="adjust-item">
+                            <label>模糊半徑</label>
+                            <input type="range" id="lensBlurRadius" min="1" max="50" value="10">
+                            <span id="lensBlurRadiusVal">10</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>散景形狀</label>
+                            <select id="bokehShape" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="circle">⚪ 圓形</option>
+                                <option value="hexagon">⬡ 六邊形</option>
+                                <option value="octagon">⯃ 八邊形</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyLensBlur()">📷 套用鏡頭模糊</button>
+                </div>
+                
+                <!-- 動態模糊面板 -->
+                <div class="motion-blur-panel" id="motionBlurPanel">
+                    <div class="panel-title">💨 動態模糊</div>
+                    <div class="motion-options">
+                        <div class="adjust-item">
+                            <label>模糊距離</label>
+                            <input type="range" id="motionDistance" min="5" max="100" value="20">
+                            <span id="motionDistanceVal">20</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>角度</label>
+                            <input type="range" id="motionAngle" min="0" max="360" value="0">
+                            <span id="motionAngleVal">0°</span>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyMotionBlur()">💨 套用動態模糊</button>
+                </div>
+                
+                <!-- 變形面板 -->
+                <div class="warp-panel" id="warpPanel">
+                    <div class="panel-title">🔄 變形工具</div>
+                    <div class="warp-options" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyWarp('arc')">🌙 弧形</button>
+                        <button class="wm-action-btn" onclick="applyWarp('bulge')">🔴 凸起</button>
+                        <button class="wm-action-btn" onclick="applyWarp('pinch')">⚫ 擠壓</button>
+                        <button class="wm-action-btn" onclick="applyWarp('twist')">🌀 扭轉</button>
+                        <button class="wm-action-btn" onclick="applyWarp('wave')">〰️ 波浪</button>
+                        <button class="wm-action-btn" onclick="applyWarp('fisheye')">🐟 魚眼</button>
+                    </div>
+                </div>
+                
+                <!-- 透視面板 -->
+                <div class="perspective-panel" id="perspectivePanel">
+                    <div class="panel-title">🔲 透視變換</div>
+                    <div class="perspective-options">
+                        <div class="adjust-item">
+                            <label>水平傾斜</label>
+                            <input type="range" id="perspectiveH" min="-45" max="45" value="0">
+                            <span id="perspectiveHVal">0°</span>
+                        </div>
+                        <div class="adjust-item">
+                            <label>垂直傾斜</label>
+                            <input type="range" id="perspectiveV" min="-45" max="45" value="0">
+                            <span id="perspectiveVVal">0°</span>
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="applyPerspective()">🔲 套用透視</button>
+                </div>
+                
+                <!-- 扭曲面板 -->
+                <div class="distort-panel" id="distortPanel">
+                    <div class="panel-title">🌊 扭曲效果</div>
+                    <div class="distort-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="applyDistort('spherize')">🔮 球面化</button>
+                        <button class="wm-action-btn" onclick="applyDistort('ripple')">🌊 漣漪</button>
+                        <button class="wm-action-btn" onclick="applyDistort('zigzag')">⚡ 鋸齒</button>
+                        <button class="wm-action-btn" onclick="applyDistort('polar')">🎯 極座標</button>
+                    </div>
+                </div>
+                
+                <!-- 卡片面板 -->
+                <div class="card-panel" id="cardPanel">
+                    <div class="panel-title">🎴 卡片模板</div>
+                    <div class="card-templates" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <button class="wm-action-btn" onclick="createCard('birthday')">🎂 生日卡</button>
+                        <button class="wm-action-btn" onclick="createCard('christmas')">🎄 聖誕卡</button>
+                        <button class="wm-action-btn" onclick="createCard('wedding')">💒 婚禮卡</button>
+                        <button class="wm-action-btn" onclick="createCard('thanks')">🙏 感謝卡</button>
+                        <button class="wm-action-btn" onclick="createCard('invite')">💌 邀請函</button>
+                        <button class="wm-action-btn" onclick="createCard('greeting')">👋 問候卡</button>
+                    </div>
+                </div>
+                
+                <!-- Logo 面板 -->
+                <div class="logo-panel" id="logoPanel">
+                    <div class="panel-title">🏢 Logo 製作</div>
+                    <div class="logo-options">
+                        <input type="text" id="logoText" placeholder="輸入文字..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;">
+                        <div class="wm-option">
+                            <label>字體樣式</label>
+                            <select id="logoFont" style="padding:8px;border-radius:4px;width:100%;">
+                                <option value="bold">粗體</option>
+                                <option value="elegant">優雅</option>
+                                <option value="tech">科技</option>
+                                <option value="handwrite">手寫</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:10px;">
+                            <input type="color" id="logoColor1" value="#667eea" style="flex:1;height:40px;border:none;cursor:pointer;">
+                            <input type="color" id="logoColor2" value="#764ba2" style="flex:1;height:40px;border:none;cursor:pointer;">
+                        </div>
+                    </div>
+                    <button class="wm-action-btn add" onclick="createLogo()" style="margin-top:10px;">🏢 產生 Logo</button>
+                </div>
+                
                 <!-- 列印面板 -->
                 <div class="print-panel" id="printPanel">
                     <div class="panel-title">🖨️ 列印設定</div>
@@ -10186,6 +10595,29 @@
             };
         }
         
+        function pickBgColor() {
+            showToast('💡 點擊畫布選取背景顏色');
+            eyedropperTarget = 'bgColor';
+            canvas.style.cursor = 'crosshair';
+        }
+        
+        function pickReplaceColor() {
+            showToast('💡 點擊畫布選取要替換的顏色');
+            eyedropperTarget = 'replaceFrom';
+            canvas.style.cursor = 'crosshair';
+        }
+        
+        function showOverlayType(type) {
+            // 顯示不同類型的疊加選項
+            const panels = ['overlayImage', 'overlayGradient', 'overlayPattern'];
+            panels.forEach(p => {
+                const el = document.getElementById(p);
+                if (el) el.style.display = 'none';
+            });
+            const target = document.getElementById('overlay' + type.charAt(0).toUpperCase() + type.slice(1));
+            if (target) target.style.display = 'block';
+        }
+        
         function replaceColor() {
             saveHistory();
             const fromHex = document.getElementById('replaceFrom').value;
@@ -11454,13 +11886,21 @@
         // ===== 直方圖分析 =====
         function showHistogramPanel() {
             togglePanel('histogramPanel', 'histogramBtn');
-            drawHistogram();
+            drawHistogram('all');
         }
         
-        function drawHistogram() {
+        let currentHistogramChannel = 'all';
+        
+        function drawHistogram(channel) {
+            if (channel) currentHistogramChannel = channel;
+            
             const histCanvas = document.getElementById('histogramCanvas');
             if (!histCanvas) return;
             const histCtx = histCanvas.getContext('2d');
+            
+            // 設定畫布大小
+            histCanvas.width = 280;
+            histCanvas.height = 150;
             
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const histR = new Array(256).fill(0);
@@ -11478,79 +11918,38 @@
             
             const maxVal = Math.max(...histR, ...histG, ...histB, ...histL);
             
+            // 清除畫布
             histCtx.fillStyle = '#1a1a2e';
-            histCtx.fillRect(0, 0, 256, 150);
+            histCtx.fillRect(0, 0, 280, 150);
             
-            const showR = document.getElementById('histR')?.checked;
-            const showG = document.getElementById('histG')?.checked;
-            const showB = document.getElementById('histB')?.checked;
-            const showL = document.getElementById('histL')?.checked;
+            const w = 280 / 256;
             
-            histCtx.globalAlpha = 0.5;
+            histCtx.globalAlpha = 0.7;
             
-            if (showR) {
-                histCtx.fillStyle = '#ff0000';
+            if (currentHistogramChannel === 'all' || currentHistogramChannel === 'red') {
+                histCtx.fillStyle = '#ff4444';
                 for (let i = 0; i < 256; i++) {
-                    const h = (histR[i] / maxVal) * 150;
-                    histCtx.fillRect(i, 150 - h, 1, h);
+                    const h = (histR[i] / maxVal) * 140;
+                    histCtx.fillRect(i * w, 150 - h, w, h);
                 }
             }
-            if (showG) {
-                histCtx.fillStyle = '#00ff00';
+            if (currentHistogramChannel === 'all' || currentHistogramChannel === 'green') {
+                histCtx.fillStyle = '#44ff44';
                 for (let i = 0; i < 256; i++) {
-                    const h = (histG[i] / maxVal) * 150;
-                    histCtx.fillRect(i, 150 - h, 1, h);
+                    const h = (histG[i] / maxVal) * 140;
+                    histCtx.fillRect(i * w, 150 - h, w, h);
                 }
             }
-            if (showB) {
-                histCtx.fillStyle = '#0000ff';
+            if (currentHistogramChannel === 'all' || currentHistogramChannel === 'blue') {
+                histCtx.fillStyle = '#4444ff';
                 for (let i = 0; i < 256; i++) {
-                    const h = (histB[i] / maxVal) * 150;
-                    histCtx.fillRect(i, 150 - h, 1, h);
-                }
-            }
-            if (showL) {
-                histCtx.fillStyle = '#ffffff';
-                for (let i = 0; i < 256; i++) {
-                    const h = (histL[i] / maxVal) * 150;
-                    histCtx.fillRect(i, 150 - h, 1, h);
+                    const h = (histB[i] / maxVal) * 140;
+                    histCtx.fillRect(i * w, 150 - h, w, h);
                 }
             }
             
             histCtx.globalAlpha = 1;
-            
-            // 更新統計資訊
-            updateHistogramStats(imageData);
-        }
-        
-        function updateHistogramStats(imageData) {
-            const stats = document.getElementById('histogramStats');
-            if (!stats) return;
-            
-            let minR = 255, maxR = 0, avgR = 0;
-            let minG = 255, maxG = 0, avgG = 0;
-            let minB = 255, maxB = 0, avgB = 0;
-            const pixelCount = imageData.data.length / 4;
-            
-            for (let i = 0; i < imageData.data.length; i += 4) {
-                const r = imageData.data[i];
-                const g = imageData.data[i + 1];
-                const b = imageData.data[i + 2];
-                
-                minR = Math.min(minR, r); maxR = Math.max(maxR, r); avgR += r;
-                minG = Math.min(minG, g); maxG = Math.max(maxG, g); avgG += g;
-                minB = Math.min(minB, b); maxB = Math.max(maxB, b); avgB += b;
-            }
-            
-            avgR = Math.round(avgR / pixelCount);
-            avgG = Math.round(avgG / pixelCount);
-            avgB = Math.round(avgB / pixelCount);
-            
-            stats.innerHTML = `
-                <div class="info-row"><span>🔴 紅 (min/avg/max)</span><span>${minR}/${avgR}/${maxR}</span></div>
-                <div class="info-row"><span>🟢 綠 (min/avg/max)</span><span>${minG}/${avgG}/${maxG}</span></div>
-                <div class="info-row"><span>🔵 藍 (min/avg/max)</span><span>${minB}/${avgB}/${maxB}</span></div>
-            `;
+            showToast('📊 直方圖已更新');
         }
         
         // ===== 色彩平衡 =====
@@ -11561,17 +11960,10 @@
         function applyColorBalance() {
             saveHistory();
             
-            const shadowCR = parseInt(document.getElementById('shadowCyanRed')?.value || 0);
-            const shadowMG = parseInt(document.getElementById('shadowMagentaGreen')?.value || 0);
-            const shadowYB = parseInt(document.getElementById('shadowYellowBlue')?.value || 0);
-            
-            const midCR = parseInt(document.getElementById('midCyanRed')?.value || 0);
-            const midMG = parseInt(document.getElementById('midMagentaGreen')?.value || 0);
-            const midYB = parseInt(document.getElementById('midYellowBlue')?.value || 0);
-            
-            const highCR = parseInt(document.getElementById('highCyanRed')?.value || 0);
-            const highMG = parseInt(document.getElementById('highMagentaGreen')?.value || 0);
-            const highYB = parseInt(document.getElementById('highYellowBlue')?.value || 0);
+            const cr = parseInt(document.getElementById('balanceCyanRed')?.value || 0);
+            const mg = parseInt(document.getElementById('balanceMagentaGreen')?.value || 0);
+            const yb = parseInt(document.getElementById('balanceYellowBlue')?.value || 0);
+            const range = document.getElementById('balanceRange')?.value || 'midtones';
             
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
@@ -11580,26 +11972,20 @@
                 const r = data[i], g = data[i+1], b = data[i+2];
                 const lum = (r + g + b) / 3;
                 
-                let cr, mg, yb;
-                if (lum < 85) { // 陰影
-                    const factor = lum / 85;
-                    cr = shadowCR * factor;
-                    mg = shadowMG * factor;
-                    yb = shadowYB * factor;
-                } else if (lum < 170) { // 中間調
-                    cr = midCR;
-                    mg = midMG;
-                    yb = midYB;
-                } else { // 亮部
-                    const factor = (lum - 170) / 85;
-                    cr = highCR * factor;
-                    mg = highMG * factor;
-                    yb = highYB * factor;
+                let factor = 0;
+                if (range === 'shadows' && lum < 85) {
+                    factor = 1 - (lum / 85);
+                } else if (range === 'midtones' && lum >= 85 && lum < 170) {
+                    factor = 1;
+                } else if (range === 'highlights' && lum >= 170) {
+                    factor = (lum - 170) / 85;
                 }
                 
-                data[i] = Math.min(255, Math.max(0, r + cr));
-                data[i+1] = Math.min(255, Math.max(0, g + mg));
-                data[i+2] = Math.min(255, Math.max(0, b + yb));
+                if (factor > 0) {
+                    data[i] = Math.min(255, Math.max(0, r + cr * factor));
+                    data[i+1] = Math.min(255, Math.max(0, g + mg * factor));
+                    data[i+2] = Math.min(255, Math.max(0, b + yb * factor));
+                }
             }
             
             ctx.putImageData(imageData, 0, 0);
@@ -11613,52 +11999,87 @@
         
         function applySelectiveColor() {
             saveHistory();
-            const target = document.getElementById('selectiveTarget')?.value || 'reds';
-            const cyan = parseInt(document.getElementById('selectiveCyan')?.value || 0);
-            const magenta = parseInt(document.getElementById('selectiveMagenta')?.value || 0);
-            const yellow = parseInt(document.getElementById('selectiveYellow')?.value || 0);
-            const black = parseInt(document.getElementById('selectiveBlack')?.value || 0);
+            const target = document.getElementById('selectiveTarget')?.value || 'red';
+            const hueShift = parseInt(document.getElementById('selectiveHue')?.value || 0);
+            const satAdjust = parseInt(document.getElementById('selectiveSat')?.value || 0);
+            const lightAdjust = parseInt(document.getElementById('selectiveLight')?.value || 0);
             
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
             
+            // 目標色相範圍
+            const hueRanges = {
+                'red': [0, 30, 330, 360],
+                'orange': [30, 60],
+                'yellow': [60, 90],
+                'green': [90, 150],
+                'cyan': [150, 210],
+                'blue': [210, 270],
+                'purple': [270, 330]
+            };
+            
+            const range = hueRanges[target] || [0, 360];
+            
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i], g = data[i+1], b = data[i+2];
-                const max = Math.max(r, g, b);
-                const min = Math.min(r, g, b);
                 
-                let hue = 0;
+                // RGB 轉 HSL
+                const max = Math.max(r, g, b) / 255;
+                const min = Math.min(r, g, b) / 255;
+                let h = 0, s = 0, l = (max + min) / 2;
+                
                 if (max !== min) {
-                    if (max === r) hue = (g - b) / (max - min) * 60;
-                    else if (max === g) hue = ((b - r) / (max - min) + 2) * 60;
-                    else hue = ((r - g) / (max - min) + 4) * 60;
-                    if (hue < 0) hue += 360;
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    
+                    if (max === r/255) h = ((g/255 - b/255) / d + (g < b ? 6 : 0)) * 60;
+                    else if (max === g/255) h = ((b/255 - r/255) / d + 2) * 60;
+                    else h = ((r/255 - g/255) / d + 4) * 60;
                 }
                 
+                // 檢查是否在目標範圍內
                 let match = false;
-                switch(target) {
-                    case 'reds': match = hue < 30 || hue > 330; break;
-                    case 'oranges': match = hue >= 30 && hue < 60; break;
-                    case 'yellows': match = hue >= 60 && hue < 90; break;
-                    case 'greens': match = hue >= 90 && hue < 150; break;
-                    case 'cyans': match = hue >= 150 && hue < 210; break;
-                    case 'blues': match = hue >= 210 && hue < 270; break;
-                    case 'purples': match = hue >= 270 && hue < 300; break;
-                    case 'magentas': match = hue >= 300 && hue < 330; break;
-                    case 'whites': match = min > 200; break;
-                    case 'neutrals': match = (max - min) < 30; break;
-                    case 'blacks': match = max < 55; break;
+                if (range.length === 4) {
+                    match = (h >= range[0] && h < range[1]) || (h >= range[2] && h < range[3]);
+                } else {
+                    match = h >= range[0] && h < range[1];
                 }
                 
-                if (match) {
-                    data[i] = Math.min(255, Math.max(0, r - cyan + magenta - black));
-                    data[i+1] = Math.min(255, Math.max(0, g - magenta - cyan - black));
-                    data[i+2] = Math.min(255, Math.max(0, b - yellow + cyan - black));
+                if (match && s > 0.1) {  // 只調整有飽和度的顏色
+                    // 調整 HSL
+                    h = (h + hueShift + 360) % 360;
+                    s = Math.min(1, Math.max(0, s + satAdjust / 100));
+                    l = Math.min(1, Math.max(0, l + lightAdjust / 200));
+                    
+                    // HSL 轉回 RGB
+                    let r2, g2, b2;
+                    if (s === 0) {
+                        r2 = g2 = b2 = l;
+                    } else {
+                        const hue2rgb = (p, q, t) => {
+                            if (t < 0) t += 1;
+                            if (t > 1) t -= 1;
+                            if (t < 1/6) return p + (q - p) * 6 * t;
+                            if (t < 1/2) return q;
+                            if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                            return p;
+                        };
+                        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                        const p = 2 * l - q;
+                        r2 = hue2rgb(p, q, h/360 + 1/3);
+                        g2 = hue2rgb(p, q, h/360);
+                        b2 = hue2rgb(p, q, h/360 - 1/3);
+                    }
+                    
+                    data[i] = Math.round(r2 * 255);
+                    data[i+1] = Math.round(g2 * 255);
+                    data[i+2] = Math.round(b2 * 255);
                 }
             }
             
             ctx.putImageData(imageData, 0, 0);
-            showToast('🎯 選擇性調色已套用');
+            const targetNames = { red: '紅色', orange: '橙色', yellow: '黃色', green: '綠色', cyan: '青色', blue: '藍色', purple: '紫色' };
+            showToast('🎯 已調整 ' + (targetNames[target] || target));
         }
         
         // ===== 相片濾鏡 =====
@@ -11666,33 +12087,54 @@
             togglePanel('photoFilterPanel', 'photoFilterBtn');
         }
         
-        function applyPhotoFilter(color) {
+        function applyPhotoFilter(filterType) {
             saveHistory();
-            const density = parseInt(document.getElementById('pfDensity')?.value || 25) / 100;
-            const preserveLum = document.getElementById('pfPreserveLum')?.checked;
-            const rgb = hexToRgb(color);
-            
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
             
             for (let i = 0; i < data.length; i += 4) {
-                const origLum = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+                let r = data[i], g = data[i+1], b = data[i+2];
                 
-                data[i] = data[i] * (1 - density) + rgb.r * density;
-                data[i+1] = data[i+1] * (1 - density) + rgb.g * density;
-                data[i+2] = data[i+2] * (1 - density) + rgb.b * density;
-                
-                if (preserveLum) {
-                    const newLum = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                    const lumDiff = origLum - newLum;
-                    data[i] = Math.min(255, Math.max(0, data[i] + lumDiff));
-                    data[i+1] = Math.min(255, Math.max(0, data[i+1] + lumDiff));
-                    data[i+2] = Math.min(255, Math.max(0, data[i+2] + lumDiff));
+                switch(filterType) {
+                    case 'warm': // 暖色
+                        r = Math.min(255, r * 1.1 + 10);
+                        b = Math.max(0, b * 0.9 - 10);
+                        break;
+                    case 'cool': // 冷色
+                        r = Math.max(0, r * 0.9 - 10);
+                        b = Math.min(255, b * 1.1 + 15);
+                        break;
+                    case 'sunset': // 日落
+                        r = Math.min(255, r * 1.15 + 20);
+                        g = Math.min(255, g * 1.05);
+                        b = Math.max(0, b * 0.85);
+                        break;
+                    case 'forest': // 森林
+                        r = Math.max(0, r * 0.9);
+                        g = Math.min(255, g * 1.1 + 10);
+                        b = Math.max(0, b * 0.9);
+                        break;
+                    case 'ocean': // 海洋
+                        r = Math.max(0, r * 0.85);
+                        g = Math.min(255, g * 1.05 + 5);
+                        b = Math.min(255, b * 1.15 + 15);
+                        break;
+                    case 'sepia': // 復古褐
+                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                        r = Math.min(255, gray * 1.2 + 30);
+                        g = Math.min(255, gray * 1.0 + 10);
+                        b = Math.max(0, gray * 0.8);
+                        break;
                 }
+                
+                data[i] = r;
+                data[i+1] = g;
+                data[i+2] = b;
             }
             
             ctx.putImageData(imageData, 0, 0);
-            showToast('📷 相片濾鏡已套用');
+            const filterNames = { warm: '暖色', cool: '冷色', sunset: '日落', forest: '森林', ocean: '海洋', sepia: '復古褐' };
+            showToast('📷 ' + (filterNames[filterType] || filterType) + ' 濾鏡已套用');
         }
         
         // ===== 鏡頭模糊 =====
@@ -11937,6 +12379,66 @@
             togglePanel('cardPanel', 'cardBtn');
         }
         
+        function createCard(cardType) {
+            saveHistory();
+            
+            // 設定卡片尺寸
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // 根據卡片類型繪製不同背景
+            const gradients = {
+                'birthday': ['#ff6b6b', '#feca57'],
+                'christmas': ['#2d5016', '#c41e3a'],
+                'wedding': ['#f8e8d4', '#d4a574'],
+                'thanks': ['#74b9ff', '#a29bfe'],
+                'invite': ['#fd79a8', '#e84393'],
+                'greeting': ['#55efc4', '#81ecec']
+            };
+            
+            const colors = gradients[cardType] || ['#667eea', '#764ba2'];
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, colors[0]);
+            gradient.addColorStop(1, colors[1]);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 添加裝飾
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const r = Math.random() * 50 + 10;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // 添加標題文字
+            const titles = {
+                'birthday': '🎂 Happy Birthday!',
+                'christmas': '🎄 Merry Christmas!',
+                'wedding': '💒 Wedding Invitation',
+                'thanks': '🙏 Thank You!',
+                'invite': '💌 You are Invited!',
+                'greeting': '👋 Greetings!'
+            };
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 60px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            ctx.fillText(titles[cardType] || 'Card', canvas.width/2, canvas.height/2);
+            ctx.shadowBlur = 0;
+            
+            // 添加提示文字
+            ctx.font = '24px sans-serif';
+            ctx.fillText('點擊文字工具添加您的訊息', canvas.width/2, canvas.height/2 + 80);
+            
+            showToast('🎴 ' + (titles[cardType]?.split(' ')[0] || '') + ' 卡片已產生');
+        }
+        
         function generateCard() {
             saveHistory();
             const name = document.getElementById('cardName')?.value || '姓名';
@@ -12099,33 +12601,53 @@
             togglePanel('logoPanel', 'logoBtn');
         }
         
-        function generateLogo() {
+        function createLogo() {
             saveHistory();
             const text = document.getElementById('logoText')?.value || 'LOGO';
-            const slogan = document.getElementById('logoSlogan')?.value || '';
-            const color1 = document.getElementById('logoColor1')?.value || '#6366f1';
-            const color2 = document.getElementById('logoColor2')?.value || '#ec4899';
+            const font = document.getElementById('logoFont')?.value || 'bold';
+            const color1 = document.getElementById('logoColor1')?.value || '#667eea';
+            const color2 = document.getElementById('logoColor2')?.value || '#764ba2';
             
-            canvas.width = 500;
-            canvas.height = 200;
+            canvas.width = 600;
+            canvas.height = 300;
             
-            // 漸層背景
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            // 透明背景
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 建立漸層
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
             gradient.addColorStop(0, color1);
             gradient.addColorStop(1, color2);
             
-            ctx.fillStyle = gradient;
-            ctx.font = 'bold 72px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 20);
+            // 根據字體樣式設定
+            const fontStyles = {
+                'bold': 'bold 80px Arial, sans-serif',
+                'elegant': 'italic 70px Georgia, serif',
+                'tech': 'bold 75px "Courier New", monospace',
+                'handwrite': '70px "Comic Sans MS", cursive'
+            };
             
-            if (slogan) {
-                ctx.font = '18px sans-serif';
-                ctx.fillStyle = '#666';
-                ctx.fillText(slogan, canvas.width / 2, canvas.height / 2 + 60);
-            }
+            ctx.font = fontStyles[font] || fontStyles['bold'];
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 添加陰影
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 5;
+            ctx.shadowOffsetY = 5;
+            
+            // 繪製文字
+            ctx.fillStyle = gradient;
+            ctx.fillText(text, canvas.width/2, canvas.height/2);
+            
+            ctx.shadowBlur = 0;
             
             showToast('🏢 Logo 已產生');
+        }
+        
+        function generateLogo() {
+            createLogo();
         }
         
         // ===== GIF 製作 =====
@@ -13487,15 +14009,99 @@
         }
         
         function applyBigEye() {
-            showToast('👀 大眼功能需要人臉檢測');
+            saveHistory();
+            const amount = parseInt(document.getElementById('eyeEnlarge')?.value || 20);
+            
+            // 簡化的放大效果（球面化中心區域）
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 3;  // 眼睛大約在上1/3位置
+            const radius = Math.min(canvas.width, canvas.height) / 4;
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const srcData = new Uint8ClampedArray(imageData.data);
+            const data = imageData.data;
+            
+            const strength = amount / 100;
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < radius) {
+                        const factor = 1 - (dist / radius) * strength * 0.5;
+                        const srcX = Math.round(centerX + dx * factor);
+                        const srcY = Math.round(centerY + dy * factor);
+                        
+                        if (srcX >= 0 && srcX < canvas.width && srcY >= 0 && srcY < canvas.height) {
+                            const dstIdx = (y * canvas.width + x) * 4;
+                            const srcIdx = (srcY * canvas.width + srcX) * 4;
+                            data[dstIdx] = srcData[srcIdx];
+                            data[dstIdx + 1] = srcData[srcIdx + 1];
+                            data[dstIdx + 2] = srcData[srcIdx + 2];
+                        }
+                    }
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            showToast('👀 大眼效果已套用（模擬）');
         }
         
         function showMakeupPanel() {
             togglePanel('makeupPanel', 'makeupBtn');
         }
         
+        function applyMakeup(type) {
+            saveHistory();
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // 簡化的彩妝效果（調整色調）
+            switch(type) {
+                case 'lipstick':
+                    // 增加紅色飽和度（模擬口紅）
+                    for (let i = 0; i < data.length; i += 4) {
+                        if (data[i] > data[i+1] && data[i] > data[i+2]) {
+                            data[i] = Math.min(255, data[i] * 1.3);
+                        }
+                    }
+                    showToast('💋 口紅效果已套用（模擬）');
+                    break;
+                case 'blush':
+                    // 中間區域加粉色
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height / 2;
+                    for (let y = 0; y < canvas.height; y++) {
+                        for (let x = 0; x < canvas.width; x++) {
+                            const dist = Math.sqrt((x-cx)**2 + (y-cy)**2);
+                            if (dist < canvas.width/4) {
+                                const idx = (y * canvas.width + x) * 4;
+                                data[idx] = Math.min(255, data[idx] + 15);
+                                data[idx+1] = Math.min(255, data[idx+1] + 5);
+                            }
+                        }
+                    }
+                    showToast('🌸 腮紅效果已套用（模擬）');
+                    break;
+                case 'eyeshadow':
+                    showToast('👁️ 眼影需要人臉檢測定位');
+                    return;
+                case 'eyeliner':
+                    showToast('✏️ 眼線需要人臉檢測定位');
+                    return;
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
         function showFaceSwapPanel() {
-            showToast('🎭 換臉功能需要 AI 模型');
+            togglePanel('faceSwapPanel', 'faceSwapBtn');
+        }
+        
+        function applyFaceSwap() {
+            showToast('🎭 換臉功能需要進階 AI 模型（如 InsightFace）\n目前尚未整合，敬請期待！');
         }
         
         function applyPortraitBlur() {
@@ -13503,7 +14109,11 @@
         }
         
         function showSkeletonPanel() {
-            showToast('🦴 骨架檢測需要 AI 模型');
+            togglePanel('skeletonPanel', 'skeletonBtn');
+        }
+        
+        function detectSkeleton() {
+            showToast('🦴 骨架檢測需要 AI 姿態估計模型（如 PoseNet）\n目前尚未整合，敬請期待！');
         }
         
         function showMosaicArtPanel() {
@@ -13611,7 +14221,12 @@
                 'hslPanel', 'splitTonePanel', 'lensPanel', 'chromaticPanel', 'filmGrainPanel',
                 'arrowPanel', 'printPanel', 'sharePanel', 'cloudPanel', 'shortcutPanel', 'helpPanel',
                 'colorGradePanel', 'lutPanel', 'vintagePanel', 'filmPanel', 'cinemaPanel',
-                'splitTonePanel', 'eyeDropperAdvPanel', 'gifPanel'
+                'splitTonePanel', 'eyeDropperAdvPanel', 'gifPanel',
+                'photoFilterPanel', 'selectiveColorPanel', 'colorBalancePanel', 'histogramPanel',
+                'curvePanel', 'liquifyPanel', 'layerPanel', 'channelPanel', 'alignPanel', 'guidePanel',
+                'dotArtPanel', 'colorSplashPanel', 'slimFacePanel', 'bigEyePanel', 'makeupPanel',
+                'faceSwapPanel', 'skeletonPanel', 'lensBlurPanel', 'motionBlurPanel', 'warpPanel',
+                'perspectivePanel', 'distortPanel', 'cardPanel', 'logoPanel'
             ];
             
             // 關閉其他面板
