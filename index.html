@@ -151,15 +151,54 @@
             background: var(--bg-card);
             padding: 8px 10px;
             display: flex;
+            flex-direction: column;
             gap: 6px;
-            overflow-x: auto;
             border-bottom: 1px solid var(--border);
         }
+        .toolbar-categories {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .toolbar-categories::-webkit-scrollbar { height: 4px; }
+        .toolbar-categories::-webkit-scrollbar-track { background: var(--bg-input); border-radius: 2px; }
+        .toolbar-categories::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+        .category-btn {
+            flex-shrink: 0;
+            padding: 8px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .category-btn:hover { background: var(--bg-dark); border-color: var(--primary); }
+        .category-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+        .category-btn .cat-icon { font-size: 14px; }
+        .toolbar-tools {
+            display: none;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 5px 0;
+            animation: slideDown 0.2s ease;
+        }
+        .toolbar-tools.show { display: flex; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         /* 電腦版顯示細緻滾動條 */
-        .toolbar::-webkit-scrollbar { height: 6px; }
-        .toolbar::-webkit-scrollbar-track { background: var(--bg-input); border-radius: 3px; }
-        .toolbar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
-        .toolbar::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        .toolbar-tools::-webkit-scrollbar { height: 6px; }
+        .toolbar-tools::-webkit-scrollbar-track { background: var(--bg-input); border-radius: 3px; }
+        .toolbar-tools::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+        .toolbar-tools::-webkit-scrollbar-thumb:hover { background: var(--accent); }
         .tool-btn {
             flex-shrink: 0;
             padding: 8px 12px;
@@ -4422,140 +4461,190 @@
         <div class="page active" id="page-home">
             <!-- 工具列 -->
             <div class="toolbar">
-                <button class="tool-btn" onclick="triggerUpload('image')"><span class="icon">🖼️</span>圖片</button>
-                <button class="tool-btn" onclick="triggerUpload('pdf')"><span class="icon">📄</span>PDF</button>
-                <button class="tool-btn" onclick="pasteFromClipboard()"><span class="icon">📋</span>貼上</button>
-                <button class="tool-btn" onclick="takePhoto()"><span class="icon">📷</span>拍照</button>
-                <button class="tool-btn" id="selectBtn" onclick="setTool('select')" disabled><span class="icon">✂️</span>選取</button>
-                <button class="tool-btn" id="clearBtn" onclick="clearSelection()" disabled><span class="icon">🧹</span>清除</button>
-                <button class="tool-btn" id="undoBtn" onclick="undoAction()" disabled><span class="icon">↩️</span>復原</button>
-                <button class="tool-btn" id="resetBtn" onclick="resetCanvas()" disabled><span class="icon">🗑️</span>重置</button>
-                <button class="tool-btn" id="aiBtn" onclick="showAIPanel()" disabled><span class="icon">🤖</span>AI</button>
-                <button class="tool-btn" id="pdfToolBtn" onclick="showPdfToolPanel()" style="display:none"><span class="icon">📑</span>拆分</button>
-                <button class="tool-btn" id="watermarkBtn" onclick="showWatermarkPanel()" disabled><span class="icon">💦</span>浮水印</button>
-                <button class="tool-btn" id="mosaicBtn" onclick="setTool('mosaic')" disabled><span class="icon">🔲</span>馬賽克</button>
-                <button class="tool-btn" id="stampBtn" onclick="showStampPanel()" disabled><span class="icon">🔖</span>圖章</button>
-                <button class="tool-btn" id="signBtn" onclick="showSignPanel()" disabled><span class="icon">✍️</span>簽名</button>
-                <button class="tool-btn" id="filterBtn" onclick="showFilterPanel()" disabled><span class="icon">🎨</span>濾鏡</button>
-                <button class="tool-btn" id="adjustBtn" onclick="showAdjustPanel()" disabled><span class="icon">🌈</span>調整</button>
-                <button class="tool-btn" id="frameBtn" onclick="showFramePanel()" disabled><span class="icon">🖼️</span>邊框</button>
-                <button class="tool-btn" id="stickerBtn" onclick="showStickerPanel()" disabled><span class="icon">😀</span>貼圖</button>
-                <button class="tool-btn" id="arrowBtn" onclick="showArrowPanel()" disabled><span class="icon">➡️</span>箭頭</button>
-                <button class="tool-btn" id="rotateBtn" onclick="rotateImage90()" disabled><span class="icon">🔄</span>旋轉</button>
-                <button class="tool-btn" id="flipHBtn" onclick="flipImage('h')" disabled><span class="icon">↔️</span>水平翻</button>
-                <button class="tool-btn" id="flipVBtn" onclick="flipImage('v')" disabled><span class="icon">↕️</span>垂直翻</button>
-                <button class="tool-btn" id="cropBtn" onclick="showCropPanel()" disabled><span class="icon">⬜</span>裁切</button>
-                <button class="tool-btn" id="mergeBtn" onclick="showMergePanel()" disabled><span class="icon">📐</span>拼接</button>
-                <button class="tool-btn" id="qrBtn" onclick="showQRPanel()" disabled><span class="icon">📱</span>QR碼</button>
-                <button class="tool-btn" id="compressBtn" onclick="showCompressPanel()" disabled><span class="icon">📦</span>壓縮</button>
-                <!-- 新增功能 -->
-                <button class="tool-btn" id="brushBtn" onclick="showBrushPanel()" disabled><span class="icon">🖌️</span>畫筆</button>
-                <button class="tool-btn" id="shapeBtn" onclick="showShapePanel()" disabled><span class="icon">⭕</span>形狀</button>
-                <button class="tool-btn" id="textFxBtn" onclick="showTextFxPanel()" disabled><span class="icon">🔤</span>文字特效</button>
-                <button class="tool-btn" id="templateBtn" onclick="showTemplatePanel()"><span class="icon">📋</span>模板</button>
-                <button class="tool-btn" id="collageBtn" onclick="showCollagePanel()" disabled><span class="icon">🧩</span>拼貼</button>
-                <button class="tool-btn" id="beautyBtn" onclick="showBeautyPanel()" disabled><span class="icon">✨</span>美顏</button>
-                <button class="tool-btn" id="removeBgBtn" onclick="showRemoveBgPanel()" disabled><span class="icon">🎭</span>去背</button>
-                <button class="tool-btn" id="batchBtn" onclick="showBatchPanel()" disabled><span class="icon">📚</span>批次</button>
-                <button class="tool-btn" id="effectBtn" onclick="showEffectPanel()" disabled><span class="icon">💫</span>特效</button>
-                <button class="tool-btn" id="overlayBtn" onclick="showOverlayPanel()" disabled><span class="icon">🎴</span>疊加</button>
-                <button class="tool-btn" id="annotateBtn" onclick="showAnnotatePanel()" disabled><span class="icon">📝</span>批註</button>
-                <button class="tool-btn" id="measureBtn" onclick="setTool('measure')" disabled><span class="icon">📏</span>測量</button>
-                <button class="tool-btn" id="gridBtn" onclick="toggleGrid()" disabled><span class="icon">📐</span>網格</button>
-                <button class="tool-btn" id="historyBtn" onclick="showHistoryPanel()" disabled><span class="icon">📜</span>歷史</button>
-                <button class="tool-btn" id="infoBtn" onclick="showInfoPanel()" disabled><span class="icon">ℹ️</span>資訊</button>
-                <button class="tool-btn" id="colorReplaceBtn" onclick="showColorReplacePanel()" disabled><span class="icon">🎨</span>換色</button>
-                <button class="tool-btn" id="compareBtn" onclick="toggleCompare()" disabled><span class="icon">🔀</span>比較</button>
-                <button class="tool-btn" id="idPhotoBtn" onclick="showIdPhotoPanel()" disabled><span class="icon">🪪</span>證件照</button>
-                <button class="tool-btn" id="screenshotBtn" onclick="showScreenshotPanel()" disabled><span class="icon">📲</span>截圖美化</button>
-                <button class="tool-btn" id="pixelArtBtn" onclick="showPixelArtPanel()" disabled><span class="icon">👾</span>像素畫</button>
-                <button class="tool-btn" id="asciiBtn" onclick="showAsciiPanel()" disabled><span class="icon">💻</span>ASCII</button>
-                <button class="tool-btn" id="cartoonBtn" onclick="applyCartoon()" disabled><span class="icon">🎨</span>卡通化</button>
-                <button class="tool-btn" id="sketchBtn" onclick="applySketch()" disabled><span class="icon">✏️</span>素描</button>
-                <button class="tool-btn" id="oilPaintBtn" onclick="applyOilPaint()" disabled><span class="icon">🖼️</span>油畫</button>
-                <button class="tool-btn" id="glitchBtn" onclick="applyGlitch()" disabled><span class="icon">📺</span>故障</button>
-                <button class="tool-btn" id="duotoneBtn" onclick="showDuotonePanel()" disabled><span class="icon">🎭</span>雙色調</button>
-                <button class="tool-btn" id="gradientBtn" onclick="showGradientPanel()" disabled><span class="icon">🌅</span>漸層</button>
-                <button class="tool-btn" id="vignetteBtn" onclick="applyVignette()" disabled><span class="icon">🔘</span>暈影</button>
-                <button class="tool-btn" id="noiseBtn" onclick="showNoisePanel()" disabled><span class="icon">📻</span>雜訊</button>
-                <button class="tool-btn" id="blurBgBtn" onclick="showBlurBgPanel()" disabled><span class="icon">🌫️</span>背景模糊</button>
-                <button class="tool-btn" id="textureBtn" onclick="showTexturePanel()" disabled><span class="icon">🧱</span>紋理</button>
-                <button class="tool-btn" id="lightLeakBtn" onclick="applyLightLeak()" disabled><span class="icon">☀️</span>漏光</button>
-                <button class="tool-btn" id="bokehBtn" onclick="showBokehPanel()" disabled><span class="icon">💡</span>散景</button>
-                <button class="tool-btn" id="tiltShiftBtn" onclick="applyTiltShift()" disabled><span class="icon">🏙️</span>移軸</button>
-                <button class="tool-btn" id="mirrorBtn" onclick="showMirrorPanel()" disabled><span class="icon">🪞</span>鏡像</button>
-                <button class="tool-btn" id="kaleidoBtn" onclick="applyKaleidoscope()" disabled><span class="icon">🔮</span>萬花筒</button>
-                <button class="tool-btn" id="splitBtn" onclick="showSplitPanel()" disabled><span class="icon">🔲</span>分割</button>
-                <button class="tool-btn" id="socialBtn" onclick="showSocialPanel()" disabled><span class="icon">📱</span>社群</button>
-                <button class="tool-btn" id="exportBtn" onclick="showExportPanel()" disabled><span class="icon">💾</span>匯出</button>
-                <!-- 更多進階功能 -->
-                <button class="tool-btn" id="layerBtn" onclick="showLayerPanel()" disabled><span class="icon">📚</span>圖層</button>
-                <button class="tool-btn" id="cloneBtn" onclick="setTool('clone')" disabled><span class="icon">🔄</span>仿製</button>
-                <button class="tool-btn" id="healBtn" onclick="setTool('heal')" disabled><span class="icon">🩹</span>修復</button>
-                <button class="tool-btn" id="liquifyBtn" onclick="showLiquifyPanel()" disabled><span class="icon">💧</span>液化</button>
-                <button class="tool-btn" id="hdrBtn" onclick="applyHDR()" disabled><span class="icon">🌟</span>HDR</button>
-                <button class="tool-btn" id="curveBtn" onclick="showCurvePanel()" disabled><span class="icon">📈</span>曲線</button>
-                <button class="tool-btn" id="levelBtn" onclick="showLevelPanel()" disabled><span class="icon">📊</span>色階</button>
-                <button class="tool-btn" id="histogramBtn" onclick="showHistogramPanel()" disabled><span class="icon">📉</span>直方圖</button>
-                <button class="tool-btn" id="colorBalanceBtn" onclick="showColorBalancePanel()" disabled><span class="icon">⚖️</span>色彩平衡</button>
-                <button class="tool-btn" id="selectiveColorBtn" onclick="showSelectiveColorPanel()" disabled><span class="icon">🎯</span>選擇性調色</button>
-                <button class="tool-btn" id="photoFilterBtn" onclick="showPhotoFilterPanel()" disabled><span class="icon">📷</span>相片濾鏡</button>
-                <button class="tool-btn" id="lensBlurBtn" onclick="showLensBlurPanel()" disabled><span class="icon">🔭</span>鏡頭模糊</button>
-                <button class="tool-btn" id="motionBlurBtn" onclick="showMotionBlurPanel()" disabled><span class="icon">💨</span>動態模糊</button>
-                <button class="tool-btn" id="zoomBlurBtn" onclick="applyZoomBlur()" disabled><span class="icon">🔍</span>放射模糊</button>
-                <button class="tool-btn" id="perspectiveBtn" onclick="showPerspectivePanel()" disabled><span class="icon">📐</span>透視</button>
-                <button class="tool-btn" id="distortBtn" onclick="showDistortPanel()" disabled><span class="icon">🌀</span>扭曲</button>
-                <button class="tool-btn" id="warpBtn" onclick="showWarpPanel()" disabled><span class="icon">〰️</span>彎曲</button>
-                <button class="tool-btn" id="memeBtn" onclick="showMemePanel()" disabled><span class="icon">😂</span>迷因</button>
-                <button class="tool-btn" id="posterBtn" onclick="showPosterPanel()" disabled><span class="icon">🎨</span>海報</button>
-                <button class="tool-btn" id="cardBtn" onclick="showCardPanel()" disabled><span class="icon">💳</span>名片</button>
-                <button class="tool-btn" id="bannerBtn" onclick="showBannerPanel()" disabled><span class="icon">🏷️</span>橫幅</button>
-                <button class="tool-btn" id="avatarBtn" onclick="showAvatarPanel()" disabled><span class="icon">👤</span>頭像</button>
-                <button class="tool-btn" id="logoBtn" onclick="showLogoPanel()" disabled><span class="icon">🏢</span>Logo</button>
-                <button class="tool-btn" id="gifBtn" onclick="showGifPanel()" disabled><span class="icon">🎬</span>GIF</button>
-                <button class="tool-btn" id="colorPaletteBtn" onclick="showColorPalettePanel()" disabled><span class="icon">🎨</span>調色盤</button>
-                <button class="tool-btn" id="eyeDropperAdvBtn" onclick="showEyeDropperAdvPanel()" disabled><span class="icon">💉</span>取色器</button>
-                <button class="tool-btn" id="rulerBtn" onclick="toggleRuler()" disabled><span class="icon">📏</span>尺規</button>
-                <button class="tool-btn" id="guideBtn" onclick="showGuidePanel()" disabled><span class="icon">📍</span>參考線</button>
-                <button class="tool-btn" id="alignBtn" onclick="showAlignPanel()" disabled><span class="icon">📐</span>對齊</button>
-                <button class="tool-btn" id="magicWandBtn" onclick="setTool('magicWand')" disabled><span class="icon">🪄</span>魔術棒</button>
-                <button class="tool-btn" id="lassoBtn" onclick="setTool('lasso')" disabled><span class="icon">🔗</span>套索</button>
-                <button class="tool-btn" id="penToolBtn" onclick="setTool('penTool')" disabled><span class="icon">🖊️</span>鋼筆</button>
-                <button class="tool-btn" id="channelBtn" onclick="showChannelPanel()" disabled><span class="icon">📺</span>色版</button>
-                <button class="tool-btn" id="autoEnhanceBtn" onclick="autoEnhance()" disabled><span class="icon">✨</span>自動增強</button>
-                <button class="tool-btn" id="autoColorBtn" onclick="autoColor()" disabled><span class="icon">🌈</span>自動色彩</button>
-                <button class="tool-btn" id="autoContrastBtn" onclick="autoContrast()" disabled><span class="icon">🎭</span>自動對比</button>
-                <button class="tool-btn" id="autoLevelBtn" onclick="autoLevel()" disabled><span class="icon">📊</span>自動色階</button>
-                <button class="tool-btn" id="redEyeBtn" onclick="setTool('redEye')" disabled><span class="icon">👁️</span>紅眼</button>
-                <button class="tool-btn" id="blemishBtn" onclick="setTool('blemish')" disabled><span class="icon">✨</span>去斑</button>
-                <button class="tool-btn" id="whiteTeethBtn" onclick="setTool('whiteTeeth')" disabled><span class="icon">😁</span>美白牙齒</button>
-                <button class="tool-btn" id="slimFaceBtn" onclick="showSlimFacePanel()" disabled><span class="icon">🧑</span>瘦臉</button>
-                <button class="tool-btn" id="bigEyeBtn" onclick="showBigEyePanel()" disabled><span class="icon">👀</span>大眼</button>
-                <button class="tool-btn" id="makeupBtn" onclick="showMakeupPanel()" disabled><span class="icon">💄</span>彩妝</button>
-                <button class="tool-btn" id="faceSwapBtn" onclick="showFaceSwapPanel()" disabled><span class="icon">🎭</span>換臉</button>
-                <button class="tool-btn" id="bgBlurPortraitBtn" onclick="applyPortraitBlur()" disabled><span class="icon">🖼️</span>人像模糊</button>
-                <button class="tool-btn" id="skeletonBtn" onclick="showSkeletonPanel()" disabled><span class="icon">🦴</span>骨架</button>
-                <button class="tool-btn" id="outlineBtn" onclick="applyOutlineEffect()" disabled><span class="icon">✏️</span>描邊</button>
-                <button class="tool-btn" id="dotArtBtn" onclick="showDotArtPanel()" disabled><span class="icon">⚫</span>點陣圖</button>
-                <button class="tool-btn" id="lowPolyBtn" onclick="applyLowPoly()" disabled><span class="icon">🔺</span>低多邊形</button>
-                <button class="tool-btn" id="mosaic2Btn" onclick="showMosaicArtPanel()" disabled><span class="icon">🧱</span>馬賽克藝術</button>
-                <button class="tool-btn" id="colorSplashBtn" onclick="showColorSplashPanel()" disabled><span class="icon">💦</span>局部彩色</button>
-                <button class="tool-btn" id="miniatureBtn" onclick="applyMiniature()" disabled><span class="icon">🏠</span>微縮</button>
-                <button class="tool-btn" id="infraredBtn" onclick="applyInfrared()" disabled><span class="icon">🔴</span>紅外線</button>
-                <button class="tool-btn" id="crossProcessBtn" onclick="applyCrossProcess()" disabled><span class="icon">🎞️</span>交叉沖印</button>
-                <button class="tool-btn" id="bleachBypassBtn" onclick="applyBleachBypass()" disabled><span class="icon">🥛</span>漂白</button>
-                <button class="tool-btn" id="splitToneBtn" onclick="showSplitTonePanel()" disabled><span class="icon">🎨</span>分離色調</button>
-                <button class="tool-btn" id="colorGradeBtn" onclick="showColorGradePanel()" disabled><span class="icon">🎬</span>調色</button>
-                <button class="tool-btn" id="lutBtn" onclick="showLutPanel()" disabled><span class="icon">🎥</span>LUT</button>
-                <button class="tool-btn" id="vintageBtn" onclick="showVintagePanel()" disabled><span class="icon">📻</span>復古</button>
-                <button class="tool-btn" id="filmBtn" onclick="showFilmPanel()" disabled><span class="icon">🎞️</span>底片</button>
-                <button class="tool-btn" id="cinemaBtn" onclick="showCinemaPanel()" disabled><span class="icon">🎬</span>電影</button>
-                <button class="tool-btn" id="printBtn" onclick="showPrintPanel()" disabled><span class="icon">🖨️</span>列印</button>
-                <button class="tool-btn" id="shareBtn" onclick="showSharePanel()" disabled><span class="icon">📤</span>分享</button>
-                <button class="tool-btn" id="cloudBtn" onclick="showCloudPanel()" disabled><span class="icon">☁️</span>雲端</button>
-                <button class="tool-btn" id="shortcutBtn" onclick="showShortcutPanel()"><span class="icon">⌨️</span>快捷鍵</button>
-                <button class="tool-btn" id="themeBtn" onclick="toggleTheme()"><span class="icon">🎨</span>主題</button>
-                <button class="tool-btn" id="helpBtn" onclick="showHelpPanel()"><span class="icon">❓</span>說明</button>
+                <!-- 分類按鈕 -->
+                <div class="toolbar-categories">
+                    <button class="category-btn active" onclick="showToolCategory('basic')"><span class="cat-icon">📁</span>基本</button>
+                    <button class="category-btn" onclick="showToolCategory('select')"><span class="cat-icon">✂️</span>選取</button>
+                    <button class="category-btn" onclick="showToolCategory('adjust')"><span class="cat-icon">🎨</span>調色</button>
+                    <button class="category-btn" onclick="showToolCategory('filter')"><span class="cat-icon">🎭</span>濾鏡</button>
+                    <button class="category-btn" onclick="showToolCategory('draw')"><span class="cat-icon">🖌️</span>繪圖</button>
+                    <button class="category-btn" onclick="showToolCategory('text')"><span class="cat-icon">✏️</span>文字</button>
+                    <button class="category-btn" onclick="showToolCategory('retouch')"><span class="cat-icon">🔧</span>修圖</button>
+                    <button class="category-btn" onclick="showToolCategory('transform')"><span class="cat-icon">🔄</span>變形</button>
+                    <button class="category-btn" onclick="showToolCategory('creative')"><span class="cat-icon">🎬</span>創意</button>
+                    <button class="category-btn" onclick="showToolCategory('output')"><span class="cat-icon">💾</span>輸出</button>
+                    <button class="category-btn" onclick="showToolCategory('tools')"><span class="cat-icon">🛠️</span>工具</button>
+                    <button class="category-btn" onclick="showToolCategory('ai')"><span class="cat-icon">🤖</span>AI</button>
+                </div>
+                
+                <!-- 基本工具 -->
+                <div class="toolbar-tools show" id="tools-basic">
+                    <button class="tool-btn" onclick="triggerUpload('image')"><span class="icon">🖼️</span>圖片</button>
+                    <button class="tool-btn" onclick="triggerUpload('pdf')"><span class="icon">📄</span>PDF</button>
+                    <button class="tool-btn" onclick="pasteFromClipboard()"><span class="icon">📋</span>貼上</button>
+                    <button class="tool-btn" onclick="takePhoto()"><span class="icon">📷</span>拍照</button>
+                    <button class="tool-btn" id="undoBtn" onclick="undoAction()" disabled><span class="icon">↩️</span>復原</button>
+                    <button class="tool-btn" id="resetBtn" onclick="resetCanvas()" disabled><span class="icon">🗑️</span>重置</button>
+                    <button class="tool-btn" id="templateBtn" onclick="showTemplatePanel()"><span class="icon">📋</span>模板</button>
+                    <button class="tool-btn" id="shortcutBtn" onclick="showShortcutPanel()"><span class="icon">⌨️</span>快捷鍵</button>
+                    <button class="tool-btn" id="themeBtn" onclick="toggleTheme()"><span class="icon">🎨</span>主題</button>
+                    <button class="tool-btn" id="helpBtn" onclick="showHelpPanel()"><span class="icon">❓</span>說明</button>
+                </div>
+                
+                <!-- 選取工具 -->
+                <div class="toolbar-tools" id="tools-select">
+                    <button class="tool-btn" id="selectBtn" onclick="setTool('select')" disabled><span class="icon">✂️</span>選取</button>
+                    <button class="tool-btn" id="clearBtn" onclick="clearSelection()" disabled><span class="icon">🧹</span>清除</button>
+                    <button class="tool-btn" id="lassoBtn" onclick="setTool('lasso')" disabled><span class="icon">🔗</span>套索</button>
+                    <button class="tool-btn" id="magicWandBtn" onclick="setTool('magicWand')" disabled><span class="icon">🪄</span>魔術棒</button>
+                    <button class="tool-btn" id="eyeDropperAdvBtn" onclick="showEyeDropperAdvPanel()" disabled><span class="icon">💉</span>取色器</button>
+                    <button class="tool-btn" id="colorPaletteBtn" onclick="showColorPalettePanel()" disabled><span class="icon">🎨</span>調色盤</button>
+                </div>
+                
+                <!-- 調色工具 -->
+                <div class="toolbar-tools" id="tools-adjust">
+                    <button class="tool-btn" id="adjustBtn" onclick="showAdjustPanel()" disabled><span class="icon">🌈</span>調整</button>
+                    <button class="tool-btn" id="curveBtn" onclick="showCurvePanel()" disabled><span class="icon">📈</span>曲線</button>
+                    <button class="tool-btn" id="levelBtn" onclick="showLevelPanel()" disabled><span class="icon">📊</span>色階</button>
+                    <button class="tool-btn" id="histogramBtn" onclick="showHistogramPanel()" disabled><span class="icon">📉</span>直方圖</button>
+                    <button class="tool-btn" id="colorBalanceBtn" onclick="showColorBalancePanel()" disabled><span class="icon">⚖️</span>色彩平衡</button>
+                    <button class="tool-btn" id="selectiveColorBtn" onclick="showSelectiveColorPanel()" disabled><span class="icon">🎯</span>選擇性調色</button>
+                    <button class="tool-btn" id="photoFilterBtn" onclick="showPhotoFilterPanel()" disabled><span class="icon">📷</span>相片濾鏡</button>
+                    <button class="tool-btn" id="colorReplaceBtn" onclick="showColorReplacePanel()" disabled><span class="icon">🎨</span>換色</button>
+                    <button class="tool-btn" id="hdrBtn" onclick="applyHDR()" disabled><span class="icon">🌟</span>HDR</button>
+                    <button class="tool-btn" id="autoEnhanceBtn" onclick="autoEnhance()" disabled><span class="icon">✨</span>自動增強</button>
+                    <button class="tool-btn" id="autoColorBtn" onclick="autoColor()" disabled><span class="icon">🌈</span>自動色彩</button>
+                    <button class="tool-btn" id="autoContrastBtn" onclick="autoContrast()" disabled><span class="icon">🎭</span>自動對比</button>
+                </div>
+                
+                <!-- 濾鏡工具 -->
+                <div class="toolbar-tools" id="tools-filter">
+                    <button class="tool-btn" id="filterBtn" onclick="showFilterPanel()" disabled><span class="icon">🎨</span>濾鏡</button>
+                    <button class="tool-btn" id="effectBtn" onclick="showEffectPanel()" disabled><span class="icon">💫</span>特效</button>
+                    <button class="tool-btn" id="lutBtn" onclick="showLutPanel()" disabled><span class="icon">🎥</span>LUT</button>
+                    <button class="tool-btn" id="vintageBtn" onclick="showVintagePanel()" disabled><span class="icon">📻</span>復古</button>
+                    <button class="tool-btn" id="filmBtn" onclick="showFilmPanel()" disabled><span class="icon">🎞️</span>底片</button>
+                    <button class="tool-btn" id="cinemaBtn" onclick="showCinemaPanel()" disabled><span class="icon">🎬</span>電影</button>
+                    <button class="tool-btn" id="splitToneBtn" onclick="showSplitTonePanel()" disabled><span class="icon">🎨</span>分離色調</button>
+                    <button class="tool-btn" id="colorGradeBtn" onclick="showColorGradePanel()" disabled><span class="icon">🎬</span>調色</button>
+                    <button class="tool-btn" id="duotoneBtn" onclick="showDuotonePanel()" disabled><span class="icon">🎭</span>雙色調</button>
+                    <button class="tool-btn" id="gradientBtn" onclick="showGradientPanel()" disabled><span class="icon">🌅</span>漸層</button>
+                    <button class="tool-btn" id="vignetteBtn" onclick="applyVignette()" disabled><span class="icon">🔘</span>暈影</button>
+                    <button class="tool-btn" id="noiseBtn" onclick="showNoisePanel()" disabled><span class="icon">📻</span>雜訊</button>
+                    <button class="tool-btn" id="glitchBtn" onclick="applyGlitch()" disabled><span class="icon">📺</span>故障</button>
+                </div>
+                
+                <!-- 繪圖工具 -->
+                <div class="toolbar-tools" id="tools-draw">
+                    <button class="tool-btn" id="brushBtn" onclick="showBrushPanel()" disabled><span class="icon">🖌️</span>畫筆</button>
+                    <button class="tool-btn" id="shapeBtn" onclick="showShapePanel()" disabled><span class="icon">⭕</span>形狀</button>
+                    <button class="tool-btn" id="arrowBtn" onclick="showArrowPanel()" disabled><span class="icon">➡️</span>箭頭</button>
+                    <button class="tool-btn" id="penToolBtn" onclick="setTool('penTool')" disabled><span class="icon">🖊️</span>鋼筆</button>
+                    <button class="tool-btn" id="annotateBtn" onclick="showAnnotatePanel()" disabled><span class="icon">📝</span>批註</button>
+                    <button class="tool-btn" id="frameBtn" onclick="showFramePanel()" disabled><span class="icon">🖼️</span>邊框</button>
+                    <button class="tool-btn" id="overlayBtn" onclick="showOverlayPanel()" disabled><span class="icon">🎴</span>疊加</button>
+                    <button class="tool-btn" id="textureBtn" onclick="showTexturePanel()" disabled><span class="icon">🧱</span>紋理</button>
+                </div>
+                
+                <!-- 文字工具 -->
+                <div class="toolbar-tools" id="tools-text">
+                    <button class="tool-btn" id="textFxBtn" onclick="showTextFxPanel()" disabled><span class="icon">🔤</span>文字特效</button>
+                    <button class="tool-btn" id="watermarkBtn" onclick="showWatermarkPanel()" disabled><span class="icon">💦</span>浮水印</button>
+                    <button class="tool-btn" id="logoBtn" onclick="showLogoPanel()" disabled><span class="icon">🏢</span>Logo</button>
+                    <button class="tool-btn" id="stampBtn" onclick="showStampPanel()" disabled><span class="icon">🔖</span>圖章</button>
+                    <button class="tool-btn" id="signBtn" onclick="showSignPanel()" disabled><span class="icon">✍️</span>簽名</button>
+                    <button class="tool-btn" id="qrBtn" onclick="showQRPanel()" disabled><span class="icon">📱</span>QR碼</button>
+                    <button class="tool-btn" id="stickerBtn" onclick="showStickerPanel()" disabled><span class="icon">😀</span>貼圖</button>
+                </div>
+                
+                <!-- 修圖工具 -->
+                <div class="toolbar-tools" id="tools-retouch">
+                    <button class="tool-btn" id="mosaicBtn" onclick="setTool('mosaic')" disabled><span class="icon">🔲</span>馬賽克</button>
+                    <button class="tool-btn" id="removeBgBtn" onclick="showRemoveBgPanel()" disabled><span class="icon">🎭</span>去背</button>
+                    <button class="tool-btn" id="healBtn" onclick="setTool('heal')" disabled><span class="icon">🩹</span>修復</button>
+                    <button class="tool-btn" id="cloneBtn" onclick="setTool('clone')" disabled><span class="icon">🔄</span>仿製</button>
+                    <button class="tool-btn" id="liquifyBtn" onclick="showLiquifyPanel()" disabled><span class="icon">💧</span>液化</button>
+                    <button class="tool-btn" id="beautyBtn" onclick="showBeautyPanel()" disabled><span class="icon">✨</span>美顏</button>
+                    <button class="tool-btn" id="slimFaceBtn" onclick="showSlimFacePanel()" disabled><span class="icon">🧑</span>瘦臉</button>
+                    <button class="tool-btn" id="bigEyeBtn" onclick="showBigEyePanel()" disabled><span class="icon">👀</span>大眼</button>
+                    <button class="tool-btn" id="makeupBtn" onclick="showMakeupPanel()" disabled><span class="icon">💄</span>彩妝</button>
+                    <button class="tool-btn" id="redEyeBtn" onclick="setTool('redEye')" disabled><span class="icon">👁️</span>紅眼</button>
+                    <button class="tool-btn" id="blemishBtn" onclick="setTool('blemish')" disabled><span class="icon">✨</span>去斑</button>
+                    <button class="tool-btn" id="blurBgBtn" onclick="showBlurBgPanel()" disabled><span class="icon">🌫️</span>背景模糊</button>
+                </div>
+                
+                <!-- 變形工具 -->
+                <div class="toolbar-tools" id="tools-transform">
+                    <button class="tool-btn" id="rotateBtn" onclick="rotateImage90()" disabled><span class="icon">🔄</span>旋轉</button>
+                    <button class="tool-btn" id="flipHBtn" onclick="flipImage('h')" disabled><span class="icon">↔️</span>水平翻</button>
+                    <button class="tool-btn" id="flipVBtn" onclick="flipImage('v')" disabled><span class="icon">↕️</span>垂直翻</button>
+                    <button class="tool-btn" id="cropBtn" onclick="showCropPanel()" disabled><span class="icon">⬜</span>裁切</button>
+                    <button class="tool-btn" id="perspectiveBtn" onclick="showPerspectivePanel()" disabled><span class="icon">📐</span>透視</button>
+                    <button class="tool-btn" id="distortBtn" onclick="showDistortPanel()" disabled><span class="icon">🌀</span>扭曲</button>
+                    <button class="tool-btn" id="warpBtn" onclick="showWarpPanel()" disabled><span class="icon">〰️</span>彎曲</button>
+                    <button class="tool-btn" id="mirrorBtn" onclick="showMirrorPanel()" disabled><span class="icon">🪞</span>鏡像</button>
+                    <button class="tool-btn" id="lensBlurBtn" onclick="showLensBlurPanel()" disabled><span class="icon">🔭</span>鏡頭模糊</button>
+                    <button class="tool-btn" id="motionBlurBtn" onclick="showMotionBlurPanel()" disabled><span class="icon">💨</span>動態模糊</button>
+                    <button class="tool-btn" id="tiltShiftBtn" onclick="applyTiltShift()" disabled><span class="icon">🏙️</span>移軸</button>
+                </div>
+                
+                <!-- 創意工具 -->
+                <div class="toolbar-tools" id="tools-creative">
+                    <button class="tool-btn" id="collageBtn" onclick="showCollagePanel()" disabled><span class="icon">🧩</span>拼貼</button>
+                    <button class="tool-btn" id="mergeBtn" onclick="showMergePanel()" disabled><span class="icon">📐</span>拼接</button>
+                    <button class="tool-btn" id="memeBtn" onclick="showMemePanel()" disabled><span class="icon">😂</span>迷因</button>
+                    <button class="tool-btn" id="posterBtn" onclick="showPosterPanel()" disabled><span class="icon">🎨</span>海報</button>
+                    <button class="tool-btn" id="cardBtn" onclick="showCardPanel()" disabled><span class="icon">💳</span>名片</button>
+                    <button class="tool-btn" id="bannerBtn" onclick="showBannerPanel()" disabled><span class="icon">🏷️</span>橫幅</button>
+                    <button class="tool-btn" id="avatarBtn" onclick="showAvatarPanel()" disabled><span class="icon">👤</span>頭像</button>
+                    <button class="tool-btn" id="gifBtn" onclick="showGifPanel()" disabled><span class="icon">🎬</span>GIF</button>
+                    <button class="tool-btn" id="socialBtn" onclick="showSocialPanel()" disabled><span class="icon">📱</span>社群</button>
+                    <button class="tool-btn" id="cartoonBtn" onclick="applyCartoon()" disabled><span class="icon">🎨</span>卡通化</button>
+                    <button class="tool-btn" id="sketchBtn" onclick="applySketch()" disabled><span class="icon">✏️</span>素描</button>
+                    <button class="tool-btn" id="oilPaintBtn" onclick="applyOilPaint()" disabled><span class="icon">🖼️</span>油畫</button>
+                    <button class="tool-btn" id="pixelArtBtn" onclick="showPixelArtPanel()" disabled><span class="icon">👾</span>像素畫</button>
+                    <button class="tool-btn" id="asciiBtn" onclick="showAsciiPanel()" disabled><span class="icon">💻</span>ASCII</button>
+                    <button class="tool-btn" id="kaleidoBtn" onclick="applyKaleidoscope()" disabled><span class="icon">🔮</span>萬花筒</button>
+                    <button class="tool-btn" id="dotArtBtn" onclick="showDotArtPanel()" disabled><span class="icon">⚫</span>點陣圖</button>
+                    <button class="tool-btn" id="bokehBtn" onclick="showBokehPanel()" disabled><span class="icon">💡</span>散景</button>
+                    <button class="tool-btn" id="lightLeakBtn" onclick="applyLightLeak()" disabled><span class="icon">☀️</span>漏光</button>
+                </div>
+                
+                <!-- 輸出工具 -->
+                <div class="toolbar-tools" id="tools-output">
+                    <button class="tool-btn" id="compressBtn" onclick="showCompressPanel()" disabled><span class="icon">📦</span>壓縮</button>
+                    <button class="tool-btn" id="exportBtn" onclick="showExportPanel()" disabled><span class="icon">💾</span>匯出</button>
+                    <button class="tool-btn" id="printBtn" onclick="showPrintPanel()" disabled><span class="icon">🖨️</span>列印</button>
+                    <button class="tool-btn" id="shareBtn" onclick="showSharePanel()" disabled><span class="icon">📤</span>分享</button>
+                    <button class="tool-btn" id="cloudBtn" onclick="showCloudPanel()" disabled><span class="icon">☁️</span>雲端</button>
+                    <button class="tool-btn" id="splitBtn" onclick="showSplitPanel()" disabled><span class="icon">🔲</span>分割</button>
+                    <button class="tool-btn" id="batchBtn" onclick="showBatchPanel()" disabled><span class="icon">📚</span>批次</button>
+                </div>
+                
+                <!-- 輔助工具 -->
+                <div class="toolbar-tools" id="tools-tools">
+                    <button class="tool-btn" id="measureBtn" onclick="setTool('measure')" disabled><span class="icon">📏</span>測量</button>
+                    <button class="tool-btn" id="gridBtn" onclick="toggleGrid()" disabled><span class="icon">📐</span>網格</button>
+                    <button class="tool-btn" id="rulerBtn" onclick="toggleRuler()" disabled><span class="icon">📏</span>尺規</button>
+                    <button class="tool-btn" id="guideBtn" onclick="showGuidePanel()" disabled><span class="icon">📍</span>參考線</button>
+                    <button class="tool-btn" id="alignBtn" onclick="showAlignPanel()" disabled><span class="icon">📐</span>對齊</button>
+                    <button class="tool-btn" id="layerBtn" onclick="showLayerPanel()" disabled><span class="icon">📚</span>圖層</button>
+                    <button class="tool-btn" id="channelBtn" onclick="showChannelPanel()" disabled><span class="icon">📺</span>色版</button>
+                    <button class="tool-btn" id="infoBtn" onclick="showInfoPanel()" disabled><span class="icon">ℹ️</span>資訊</button>
+                    <button class="tool-btn" id="historyBtn" onclick="showHistoryPanel()" disabled><span class="icon">📜</span>歷史</button>
+                    <button class="tool-btn" id="compareBtn" onclick="toggleCompare()" disabled><span class="icon">🔀</span>比較</button>
+                </div>
+                
+                <!-- AI 工具 -->
+                <div class="toolbar-tools" id="tools-ai">
+                    <button class="tool-btn" id="aiBtn" onclick="showAIPanel()" disabled><span class="icon">🤖</span>AI分析</button>
+                    <button class="tool-btn" id="idPhotoBtn" onclick="showIdPhotoPanel()" disabled><span class="icon">🪪</span>證件照</button>
+                    <button class="tool-btn" id="screenshotBtn" onclick="showScreenshotPanel()" disabled><span class="icon">📲</span>截圖美化</button>
+                    <button class="tool-btn" id="faceSwapBtn" onclick="showFaceSwapPanel()" disabled><span class="icon">🎭</span>換臉</button>
+                    <button class="tool-btn" id="skeletonBtn" onclick="showSkeletonPanel()" disabled><span class="icon">🦴</span>骨架</button>
+                    <button class="tool-btn" id="colorSplashBtn" onclick="showColorSplashPanel()" disabled><span class="icon">💦</span>局部彩色</button>
+                    <button class="tool-btn" id="pdfToolBtn" onclick="showPdfToolPanel()" style="display:none"><span class="icon">📑</span>PDF拆分</button>
+                </div>
             </div>
             
             <!-- PDF 控制列 -->
@@ -7186,10 +7275,51 @@
             event.currentTarget.classList.add('active');
         }
         
+        // ===== 工具分類切換 =====
+        let currentToolCategory = 'basic';
+        
+        function showToolCategory(category) {
+            // 更新分類按鈕狀態
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // 隱藏所有工具組
+            document.querySelectorAll('.toolbar-tools').forEach(tools => {
+                tools.classList.remove('show');
+            });
+            
+            // 顯示選中的工具組
+            const toolsDiv = document.getElementById('tools-' + category);
+            if (toolsDiv) {
+                toolsDiv.classList.add('show');
+            }
+            
+            currentToolCategory = category;
+        }
+        
         // 快速跳到工具按鈕
         function scrollToTool(btnId) {
             const btn = document.getElementById(btnId);
             if (btn) {
+                // 找到按鈕所在的分類並展開
+                const toolsContainer = btn.closest('.toolbar-tools');
+                if (toolsContainer) {
+                    const categoryId = toolsContainer.id.replace('tools-', '');
+                    // 切換到對應分類
+                    document.querySelectorAll('.category-btn').forEach(catBtn => {
+                        catBtn.classList.remove('active');
+                        if (catBtn.getAttribute('onclick')?.includes(categoryId)) {
+                            catBtn.classList.add('active');
+                        }
+                    });
+                    document.querySelectorAll('.toolbar-tools').forEach(tools => {
+                        tools.classList.remove('show');
+                    });
+                    toolsContainer.classList.add('show');
+                }
+                
                 btn.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
                 // 閃爍提示
                 btn.style.animation = 'none';
@@ -7360,6 +7490,12 @@
             
             // 雙擊重置縮放
             canvas.addEventListener('dblclick', (e) => {
+                // 鋼筆工具雙擊完成路徑
+                if (currentTool === 'penTool' && penPoints.length >= 2) {
+                    completePenPath();
+                    return;
+                }
+                
                 if (!currentTool && !eyedropperTarget && !stampDragMode && !stickerDragMode && !signDragMode) {
                     resetZoom();
                 }
@@ -16336,16 +16472,21 @@
             // Toggle 切換：再點一次取消
             if (currentTool === tool) {
                 currentTool = null;
-                document.getElementById('selectBtn').classList.remove('active');
-                document.getElementById('mosaicBtn').classList.remove('active');
-                document.getElementById('arrowBtn').classList.remove('active');
-                document.getElementById('brushBtn').classList.remove('active');
-                document.getElementById('shapeBtn').classList.remove('active');
+                document.getElementById('selectBtn')?.classList.remove('active');
+                document.getElementById('mosaicBtn')?.classList.remove('active');
+                document.getElementById('arrowBtn')?.classList.remove('active');
+                document.getElementById('brushBtn')?.classList.remove('active');
+                document.getElementById('shapeBtn')?.classList.remove('active');
                 document.getElementById('selectBtn2')?.classList.remove('active');
                 document.getElementById('eyeDropperAdvBtn')?.classList.remove('active');
                 document.getElementById('lassoBtn')?.classList.remove('active');
                 document.getElementById('magicWandBtn')?.classList.remove('active');
+                document.getElementById('penToolBtn')?.classList.remove('active');
                 canvas.style.cursor = 'default';
+                // 清除鋼筆路徑
+                if (tool === 'penTool') {
+                    penPoints = [];
+                }
                 showToast('🔓 工具已取消');
                 return;
             }
@@ -16353,17 +16494,18 @@
             currentTool = tool;
             
             // 更新所有工具按鈕狀態
-            document.getElementById('selectBtn').classList.toggle('active', tool === 'select');
+            document.getElementById('selectBtn')?.classList.toggle('active', tool === 'select');
             document.getElementById('selectBtn2')?.classList.toggle('active', tool === 'select');
-            document.getElementById('mosaicBtn').classList.toggle('active', tool === 'mosaic');
-            document.getElementById('arrowBtn').classList.toggle('active', tool === 'arrow');
-            document.getElementById('brushBtn').classList.toggle('active', tool === 'brush');
-            document.getElementById('shapeBtn').classList.toggle('active', tool === 'shape');
+            document.getElementById('mosaicBtn')?.classList.toggle('active', tool === 'mosaic');
+            document.getElementById('arrowBtn')?.classList.toggle('active', tool === 'arrow');
+            document.getElementById('brushBtn')?.classList.toggle('active', tool === 'brush');
+            document.getElementById('shapeBtn')?.classList.toggle('active', tool === 'shape');
             document.getElementById('eyeDropperAdvBtn')?.classList.toggle('active', tool === 'eyedropperAdv');
             document.getElementById('lassoBtn')?.classList.toggle('active', tool === 'lasso');
             document.getElementById('magicWandBtn')?.classList.toggle('active', tool === 'magicWand');
+            document.getElementById('penToolBtn')?.classList.toggle('active', tool === 'penTool');
             
-            const cursorTools = ['select', 'mosaic', 'arrow', 'brush', 'shape', 'eyedropperAdv', 'lasso', 'magicWand'];
+            const cursorTools = ['select', 'mosaic', 'arrow', 'brush', 'shape', 'eyedropperAdv', 'lasso', 'magicWand', 'penTool'];
             canvas.style.cursor = cursorTools.includes(tool) ? 'crosshair' : 'default';
             
             // 顯示提示
@@ -16375,7 +16517,8 @@
                 'shape': '⭕ 拖曳繪製形狀（再點一次取消）',
                 'eyedropperAdv': '💉 點擊畫布取色',
                 'lasso': '🔗 拖曳繪製選取區域',
-                'magicWand': '🪄 點擊選取相似顏色區域'
+                'magicWand': '🪄 點擊選取相似顏色區域',
+                'penTool': '🖊️ 點擊添加錨點，雙擊完成路徑'
             };
             if (tips[tool]) {
                 showToast(tips[tool]);
@@ -16385,6 +16528,85 @@
             if (tool === 'arrow') {
                 arrowStart = null;
             }
+            
+            // 初始化鋼筆工具
+            if (tool === 'penTool') {
+                penPoints = [];
+            }
+        }
+        
+        // ===== 鋼筆工具 =====
+        let penPoints = [];
+        
+        function handlePenTool(coords) {
+            penPoints.push(coords);
+            
+            // 繪製路徑預覽
+            drawPenPath();
+            
+            showToast(`🖊️ 已添加第 ${penPoints.length} 個錨點`);
+        }
+        
+        function drawPenPath() {
+            if (penPoints.length < 1) return;
+            
+            // 儲存當前畫布
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            // 繪製路徑
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(penPoints[0].x, penPoints[0].y);
+            
+            for (let i = 1; i < penPoints.length; i++) {
+                ctx.lineTo(penPoints[i].x, penPoints[i].y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 繪製錨點
+            penPoints.forEach((p, i) => {
+                ctx.fillStyle = i === 0 ? '#00ff00' : '#00ffff';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+        
+        function completePenPath() {
+            if (penPoints.length < 2) {
+                showToast('⚠️ 至少需要 2 個錨點');
+                return;
+            }
+            
+            saveHistory();
+            
+            // 用當前畫筆設定繪製最終路徑
+            ctx.strokeStyle = document.getElementById('brushColor')?.value || '#ff0000';
+            ctx.lineWidth = parseInt(document.getElementById('brushSize')?.value || 3);
+            ctx.setLineDash([]);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            ctx.moveTo(penPoints[0].x, penPoints[0].y);
+            
+            for (let i = 1; i < penPoints.length; i++) {
+                ctx.lineTo(penPoints[i].x, penPoints[i].y);
+            }
+            ctx.stroke();
+            
+            showToast(`🖊️ 已完成路徑（${penPoints.length} 個錨點）`);
+            penPoints = [];
         }
         
         function startSelection(e) {
@@ -16409,6 +16631,12 @@
             if (currentTool === 'eyedropperAdv') {
                 const pixel = ctx.getImageData(coords.x, coords.y, 1, 1).data;
                 updateColorValues(pixel[0], pixel[1], pixel[2]);
+                return;
+            }
+            
+            // 鋼筆工具
+            if (currentTool === 'penTool') {
+                handlePenTool(coords);
                 return;
             }
             
