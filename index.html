@@ -9237,7 +9237,7 @@
                     height = textSize * 1.5;
                     break;
                 case 'qr':
-                    obj.innerHTML = `<img src="${content}" style="width:${options.size || 100}px;height:${options.size || 100}px">`;
+                    obj.innerHTML = `<img src="${content}" style="width:${options.size || 100}px;height:${options.size || 100}px" crossorigin="anonymous">`;
                     width = options.size || 100;
                     height = options.size || 100;
                     break;
@@ -9808,7 +9808,7 @@
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(content)}&color=${fgColor.substring(1)}&bgcolor=${bgColor.substring(1)}`;
             
             const preview = document.getElementById('qrPreview');
-            preview.innerHTML = `<img src="${qrUrl}" alt="QR Code" id="qrImage">`;
+            preview.innerHTML = `<img src="${qrUrl}" alt="QR Code" id="qrImage" crossorigin="anonymous">`;
             
             showToast('📱 QR Code 已生成');
         }
@@ -10218,7 +10218,9 @@
         function setBrushType(type) {
             currentBrush = type;
             document.querySelectorAll('.brush-type').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function setBrushColor(color) {
@@ -10248,7 +10250,9 @@
         function setShapeType(type) {
             currentShape = type;
             document.querySelectorAll('.shape-type').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function drawShape(x, y, w, h) {
@@ -10486,7 +10490,9 @@
         function setCollageLayout(count, type) {
             collageLayout = { count, type };
             document.querySelectorAll('.collage-layout').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function addCollageImages(e) {
@@ -10775,7 +10781,9 @@
         function showEffectCategory(cat) {
             // 更新分類按鈕狀態
             document.querySelectorAll('.effect-cat').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
             
             // 顯示/隱藏效果按鈕
             document.querySelectorAll('#effectGrid .effect-item').forEach(item => {
@@ -10914,7 +10922,9 @@
         function setAnnotateTool(tool) {
             annotateTool = tool;
             document.querySelectorAll('.annotate-tool').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         // ===== 歷史記錄面板 =====
@@ -11062,7 +11072,9 @@
         function setIdSize(size) {
             currentIdSize = size;
             document.querySelectorAll('.id-size').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function generateIdPhoto() {
@@ -12051,7 +12063,9 @@
         function setLiquifyTool(tool) {
             liquifyTool = tool;
             document.querySelectorAll('.liquify-tool').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function applyLiquifyEffect(x, y) {
@@ -12154,7 +12168,9 @@
         function setCurveChannel(channel) {
             curveChannel = channel;
             document.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
             initCurveCanvas();
         }
         
@@ -12930,7 +12946,9 @@
         function setAvatarShape(shape) {
             avatarShape = shape;
             document.querySelectorAll('.avatar-shape').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
         }
         
         function setAvatarSize(size) {
@@ -17566,9 +17584,17 @@
             
             showToast('💬 傳送中...');
             
-            const imageData = canvas.toDataURL('image/png');
-            
             try {
+                // 嘗試取得圖片資料（可能因跨域而失敗）
+                let imageData;
+                try {
+                    imageData = canvas.toDataURL('image/png');
+                } catch (canvasError) {
+                    showToast('❌ 無法取得圖片（可能含有跨域內容）');
+                    console.error('Canvas toDataURL 錯誤:', canvasError);
+                    return;
+                }
+                
                 const payload = {
                     action: 'sendImage',
                     image: imageData
@@ -17586,7 +17612,8 @@
                 });
                 showToast('✅ 已傳送到 LINE！');
             } catch (e) {
-                showToast('❌ 傳送失敗');
+                showToast('❌ 傳送失敗: ' + e.message);
+                console.error('LINE 傳送錯誤:', e);
             }
         }
         
