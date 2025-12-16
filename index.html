@@ -6603,7 +6603,7 @@
                 
                 <!-- Logo 面板 -->
                 <div class="logo-panel" id="logoPanel">
-                    <div class="panel-title">🏢 Logo 製作</div>
+                    <div class="panel-title">🏢 Logo 文字</div>
                     <div class="logo-options">
                         <input type="text" id="logoText" placeholder="輸入 Logo 文字..." value="LOGO" style="width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;background:var(--bg-input);color:var(--text-primary);font-size:16px;">
                         <div class="wm-option">
@@ -6623,7 +6623,8 @@
                             </div>
                         </div>
                     </div>
-                    <button class="wm-action-btn add" onclick="createLogo()" style="margin-top:10px;">🏢 產生 Logo</button>
+                    <button class="wm-action-btn add" onclick="createLogo()" style="margin-top:10px;">🏢 添加 Logo 到圖片</button>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 Logo 會添加到圖片中央，可用 Ctrl+Z 復原</small>
                 </div>
                 
                 <!-- 列印面板 -->
@@ -12612,49 +12613,57 @@
                 return;
             }
             
+            // 檢查是否有圖片
+            if (!currentImage && canvas.width === 300) {
+                showToast('⚠️ 請先載入圖片，或使用「模板」功能建立空白畫布');
+                return;
+            }
+            
             saveHistory();
             
             const font = document.getElementById('logoFont')?.value || 'bold';
             const color1 = document.getElementById('logoColor1')?.value || '#667eea';
             const color2 = document.getElementById('logoColor2')?.value || '#764ba2';
             
-            canvas.width = 600;
-            canvas.height = 300;
-            
-            // 白色背景（可見）
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 建立漸層
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-            gradient.addColorStop(0, color1);
-            gradient.addColorStop(1, color2);
-            
-            // 根據字體樣式設定
+            // 根據字體樣式設定（根據畫布大小調整字體）
+            const fontSize = Math.min(canvas.width, canvas.height) / 6;
             const fontStyles = {
-                'bold': 'bold 80px Arial, sans-serif',
-                'elegant': 'italic 70px Georgia, serif',
-                'tech': 'bold 75px "Courier New", monospace',
-                'handwrite': '70px "Comic Sans MS", cursive'
+                'bold': `bold ${fontSize}px Arial, sans-serif`,
+                'elegant': `italic ${fontSize * 0.9}px Georgia, serif`,
+                'tech': `bold ${fontSize * 0.95}px "Courier New", monospace`,
+                'handwrite': `${fontSize * 0.9}px "Comic Sans MS", cursive`
             };
             
             ctx.font = fontStyles[font] || fontStyles['bold'];
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
-            // 添加陰影
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetX = 5;
-            ctx.shadowOffsetY = 5;
+            // 建立漸層（水平方向）
+            const textWidth = ctx.measureText(text).width;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
             
-            // 繪製文字
+            const gradient = ctx.createLinearGradient(centerX - textWidth/2, 0, centerX + textWidth/2, 0);
+            gradient.addColorStop(0, color1);
+            gradient.addColorStop(1, color2);
+            
+            // 添加陰影（讓文字更明顯）
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+            
+            // 繪製文字到圖片中央
             ctx.fillStyle = gradient;
-            ctx.fillText(text, canvas.width/2, canvas.height/2);
+            ctx.fillText(text, centerX, centerY);
             
+            // 清除陰影設定
+            ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
             
-            showToast('🏢 Logo 已產生！');
+            showToast('🏢 Logo 已添加到圖片！可拖曳調整位置');
         }
         
         function generateLogo() {
