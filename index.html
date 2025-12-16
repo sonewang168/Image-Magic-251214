@@ -5213,40 +5213,70 @@
                 
                 <!-- QR Code 面板 -->
                 <div class="qr-panel" id="qrPanel">
-                    <div class="panel-title">📱 QR Code 生成</div>
-                    <input type="text" id="qrContent" class="wm-input" placeholder="輸入網址或文字...">
-                    <div class="qr-options">
-                        <div class="wm-option">
-                            <label>大小</label>
-                            <input type="range" id="qrSize" min="50" max="200" value="100">
+                    <div class="panel-title">📱 QR Code 功能</div>
+                    
+                    <!-- 分頁標籤 -->
+                    <div style="display:flex;gap:5px;margin-bottom:15px;">
+                        <button class="qr-tab active" onclick="switchQRTab('generate', this)" style="flex:1;padding:8px;border-radius:8px;background:var(--primary);border:none;color:white;cursor:pointer;">📝 生成 QR</button>
+                        <button class="qr-tab" onclick="switchQRTab('download', this)" style="flex:1;padding:8px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);color:white;cursor:pointer;">📲 手機下載圖片</button>
+                    </div>
+                    
+                    <!-- 生成 QR Code 區塊 -->
+                    <div id="qrGenerateSection">
+                        <input type="text" id="qrContent" class="wm-input" placeholder="輸入網址或文字...">
+                        <div class="qr-options">
+                            <div class="wm-option">
+                                <label>大小</label>
+                                <input type="range" id="qrSize" min="50" max="200" value="100">
+                            </div>
+                            <div class="wm-option">
+                                <label>前景色</label>
+                                <input type="color" id="qrFgColor" value="#000000">
+                            </div>
+                            <div class="wm-option">
+                                <label>背景色</label>
+                                <input type="color" id="qrBgColor" value="#ffffff">
+                            </div>
                         </div>
-                        <div class="wm-option">
-                            <label>前景色</label>
-                            <input type="color" id="qrFgColor" value="#000000">
+                        <div id="qrPreview" class="qr-preview"></div>
+                        <button class="wm-action-btn add" onclick="generateQR()">📱 生成 QR Code</button>
+                        <div class="wm-position" style="margin-top:10px;">
+                            <label>初始位置：</label>
+                            <div class="position-grid">
+                                <button class="pos-btn" onclick="setQRPosition('top-left', this)">↖</button>
+                                <button class="pos-btn" onclick="setQRPosition('top-center', this)">↑</button>
+                                <button class="pos-btn" onclick="setQRPosition('top-right', this)">↗</button>
+                                <button class="pos-btn" onclick="setQRPosition('middle-left', this)">←</button>
+                                <button class="pos-btn" onclick="setQRPosition('center', this)">⬤</button>
+                                <button class="pos-btn" onclick="setQRPosition('middle-right', this)">→</button>
+                                <button class="pos-btn" onclick="setQRPosition('bottom-left', this)">↙</button>
+                                <button class="pos-btn" onclick="setQRPosition('bottom-center', this)">↓</button>
+                                <button class="pos-btn active" onclick="setQRPosition('bottom-right', this)">↘</button>
+                            </div>
                         </div>
-                        <div class="wm-option">
-                            <label>背景色</label>
-                            <input type="color" id="qrBgColor" value="#ffffff">
+                        <button class="wm-action-btn remove" onclick="placeQR()">📍 放置到圖片</button>
+                        <button class="wm-action-btn" onclick="cancelQRPlacement()" style="margin-top:10px;background:var(--bg-input);">❌ 取消放置</button>
+                    </div>
+                    
+                    <!-- 手機下載圖片區塊 -->
+                    <div id="qrDownloadSection" style="display:none;">
+                        <div style="background:var(--bg-input);border-radius:12px;padding:15px;margin-bottom:15px;">
+                            <div style="font-size:14px;margin-bottom:10px;">📲 傳輸圖片到手機</div>
+                            <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+                                多種方式將編輯完成的圖片傳到手機：<br>
+                                📤 分享、💾 下載、📋 複製、💬 LINE
+                            </div>
+                        </div>
+                        <div id="downloadQrPreview" style="text-align:center;margin:15px 0;min-height:150px;display:flex;align-items:center;justify-content:center;background:var(--bg-input);border-radius:12px;">
+                            <span style="color:var(--text-secondary);">點擊下方按鈕開始</span>
+                        </div>
+                        <button class="wm-action-btn add" onclick="generateDownloadQR()">📱 顯示傳輸選項</button>
+                        <div id="downloadLinkInfo" style="display:none;margin-top:10px;padding:10px;background:var(--bg-input);border-radius:8px;font-size:11px;word-break:break-all;">
+                            <div style="color:var(--accent);margin-bottom:5px;">✅ 連結已生成！</div>
+                            <a id="downloadLinkUrl" href="#" target="_blank" style="color:var(--primary);text-decoration:underline;"></a>
+                            <button onclick="copyDownloadLink()" style="margin-top:8px;padding:5px 10px;background:var(--primary);border:none;border-radius:4px;color:white;cursor:pointer;font-size:11px;">📋 複製連結</button>
                         </div>
                     </div>
-                    <div id="qrPreview" class="qr-preview"></div>
-                    <button class="wm-action-btn add" onclick="generateQR()">📱 生成 QR Code</button>
-                    <div class="wm-position" style="margin-top:10px;">
-                        <label>初始位置：</label>
-                        <div class="position-grid">
-                            <button class="pos-btn" onclick="setQRPosition('top-left', this)">↖</button>
-                            <button class="pos-btn" onclick="setQRPosition('top-center', this)">↑</button>
-                            <button class="pos-btn" onclick="setQRPosition('top-right', this)">↗</button>
-                            <button class="pos-btn" onclick="setQRPosition('middle-left', this)">←</button>
-                            <button class="pos-btn" onclick="setQRPosition('center', this)">⬤</button>
-                            <button class="pos-btn" onclick="setQRPosition('middle-right', this)">→</button>
-                            <button class="pos-btn" onclick="setQRPosition('bottom-left', this)">↙</button>
-                            <button class="pos-btn" onclick="setQRPosition('bottom-center', this)">↓</button>
-                            <button class="pos-btn active" onclick="setQRPosition('bottom-right', this)">↘</button>
-                        </div>
-                    </div>
-                    <button class="wm-action-btn remove" onclick="placeQR()">📍 放置到圖片</button>
-                    <button class="wm-action-btn" onclick="cancelQRPlacement()" style="margin-top:10px;background:var(--bg-input);">❌ 取消放置</button>
                 </div>
                 
                 <!-- 壓縮面板 -->
@@ -7151,7 +7181,7 @@
                         <small style="color:var(--text-secondary);font-size:10px;">33 字元，以 U 開頭。加入 Bot 後輸入「ID」可取得</small>
                     </div>
                     <div style="display:flex;gap:10px;margin-top:10px;">
-                        <button class="test-line-btn" onclick="testLineNotify()">🧪 測試 LINE 通知</button>
+                        <button class="test-line-btn" onclick="testLineNotify()">🧪 測試 LINE 傳送</button>
                     </div>
                 </div>
                 
@@ -9788,6 +9818,166 @@
             if (currentDragObject) {
                 removeDragObject();
                 showToast('❌ 放置已取消');
+            }
+        }
+        
+        // ===== QR Code 分頁切換 =====
+        function switchQRTab(tab, btn) {
+            // 更新按鈕狀態
+            document.querySelectorAll('#qrPanel .qr-tab').forEach(b => {
+                b.style.background = 'var(--bg-input)';
+                b.style.border = '1px solid var(--border)';
+            });
+            btn.style.background = 'var(--primary)';
+            btn.style.border = 'none';
+            
+            // 切換區塊顯示
+            document.getElementById('qrGenerateSection').style.display = tab === 'generate' ? 'block' : 'none';
+            document.getElementById('qrDownloadSection').style.display = tab === 'download' ? 'block' : 'none';
+        }
+        
+        // ===== 生成圖片下載 QR Code =====
+        let downloadImageUrl = '';
+        
+        async function generateDownloadQR() {
+            if (!currentImage && canvas.width === 300) {
+                showToast('⚠️ 請先載入圖片');
+                return;
+            }
+            
+            // 直接顯示本地分享選項（更可靠）
+            const preview = document.getElementById('downloadQrPreview');
+            preview.innerHTML = `
+                <div style="padding:15px;text-align:center;">
+                    <div style="font-size:36px;margin-bottom:10px;">📱</div>
+                    <div style="font-size:13px;color:var(--accent);margin-bottom:15px;">
+                        選擇傳輸方式
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <button onclick="shareImageNative()" style="padding:12px 20px;background:var(--primary);border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;">
+                            📤 分享到手機 (推薦)
+                        </button>
+                        <button onclick="downloadImageDirect()" style="padding:12px 20px;background:var(--secondary);border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;">
+                            💾 下載到本機
+                        </button>
+                        <button onclick="copyImageToClipboard()" style="padding:12px 20px;background:var(--bg-dark);border:1px solid var(--border);border-radius:8px;color:white;cursor:pointer;font-size:14px;">
+                            📋 複製到剪貼簿
+                        </button>
+                        <button onclick="sendToLine()" style="padding:12px 20px;background:#06C755;border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;">
+                            💬 推送到 LINE Bot
+                        </button>
+                    </div>
+                    <div style="margin-top:15px;padding:10px;background:var(--bg-input);border-radius:8px;font-size:11px;color:var(--text-secondary);">
+                        💡 <b>傳輸方式說明：</b><br>
+                        • 分享：開啟系統分享選單（AirDrop等）<br>
+                        • 下載：儲存到本機，再傳雲端<br>
+                        • LINE：需先設定 Messaging API（設定頁）
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('downloadLinkInfo').style.display = 'none';
+            showToast('📱 請選擇傳輸方式');
+        }
+        
+        function generateQRForUrl(url) {
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+            
+            const preview = document.getElementById('downloadQrPreview');
+            preview.innerHTML = `<img src="${qrUrl}" alt="Download QR" style="max-width:180px;border-radius:8px;">`;
+            
+            // 顯示連結資訊
+            const linkInfo = document.getElementById('downloadLinkInfo');
+            linkInfo.style.display = 'block';
+            document.getElementById('downloadLinkUrl').href = url;
+            document.getElementById('downloadLinkUrl').textContent = url.length > 50 ? url.substring(0, 50) + '...' : url;
+            
+            showToast('✅ QR Code 已生成！用手機掃描下載');
+        }
+        
+        function useBackupDownloadMethod() {
+            // 備用方案：提供多種下載方式
+            const preview = document.getElementById('downloadQrPreview');
+            preview.innerHTML = `
+                <div style="padding:15px;text-align:center;">
+                    <div style="font-size:36px;margin-bottom:10px;">📱💻</div>
+                    <div style="font-size:13px;color:var(--accent);margin-bottom:15px;">
+                        雲端上傳暫時不可用<br>請使用以下方式：
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <button onclick="downloadImageDirect()" style="padding:12px 20px;background:var(--primary);border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;">
+                            💾 下載到本機
+                        </button>
+                        <button onclick="shareImageNative()" style="padding:12px 20px;background:var(--secondary);border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;">
+                            📤 分享到其他 App
+                        </button>
+                        <button onclick="copyImageToClipboard()" style="padding:12px 20px;background:var(--bg-dark);border:1px solid var(--border);border-radius:8px;color:white;cursor:pointer;font-size:14px;">
+                            📋 複製圖片
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('downloadLinkInfo').style.display = 'none';
+        }
+        
+        function downloadImageDirect() {
+            const link = document.createElement('a');
+            link.download = '圖文魔術師_' + Date.now() + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('💾 圖片已下載！');
+        }
+        
+        async function shareImageNative() {
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([blob], '圖文魔術師.png', { type: 'image/png' });
+                
+                if (navigator.share && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: '圖文魔術師 - 圖片分享',
+                        files: [file]
+                    });
+                    showToast('✅ 已開啟分享選單');
+                } else {
+                    // 不支援 Web Share API
+                    downloadImageDirect();
+                    showToast('📱 此瀏覽器不支援分享，已改為下載');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    downloadImageDirect();
+                }
+            }
+        }
+        
+        async function copyImageToClipboard() {
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+                showToast('📋 圖片已複製到剪貼簿！');
+            } catch (error) {
+                showToast('⚠️ 複製失敗，請使用下載功能');
+            }
+        }
+        
+        function copyDownloadLink() {
+            if (downloadImageUrl) {
+                navigator.clipboard.writeText(downloadImageUrl).then(() => {
+                    showToast('📋 連結已複製！');
+                }).catch(() => {
+                    // 降級方案
+                    const input = document.createElement('input');
+                    input.value = downloadImageUrl;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    showToast('📋 連結已複製！');
+                });
             }
         }
         
@@ -17334,8 +17524,13 @@
         // ===== LINE 分享 =====
         async function sendToLine() {
             if (!settings.gasUrl) {
-                showToast('⚠️ 請先設定 GAS URL');
+                showToast('⚠️ 請先到設定頁填寫 GAS URL');
                 showPage('settings');
+                return;
+            }
+            
+            if (!currentImage && canvas.width === 300) {
+                showToast('⚠️ 請先載入圖片');
                 return;
             }
             
