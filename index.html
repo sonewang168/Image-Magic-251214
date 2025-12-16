@@ -989,6 +989,29 @@
         .frame-panel.show, .sticker-panel.show, .crop-panel.show, .merge-panel.show,
         .qr-panel.show, .compress-panel.show, .arrow-panel.show { display: block; }
         
+        /* 進階功能面板（預設隱藏） */
+        .photo-filter-panel, .selective-color-panel, .color-balance-panel, .histogram-panel,
+        .curve-panel, .liquify-panel, .layer-panel, .channel-panel, .align-panel, .guide-panel,
+        .dot-art-panel, .color-splash-panel, .slim-face-panel, .big-eye-panel, .makeup-panel,
+        .face-swap-panel, .skeleton-panel, .lens-blur-panel, .motion-blur-panel, .warp-panel,
+        .perspective-panel, .distort-panel, .card-panel, .logo-panel, .cinema-panel, .film-panel,
+        .vintage-panel, .lut-panel, .color-grade-panel, .split-tone-panel, .eyedropper-panel,
+        .gif-panel, .level-panel {
+            display: none;
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid var(--border);
+        }
+        .photo-filter-panel.show, .selective-color-panel.show, .color-balance-panel.show, .histogram-panel.show,
+        .curve-panel.show, .liquify-panel.show, .layer-panel.show, .channel-panel.show, .align-panel.show, .guide-panel.show,
+        .dot-art-panel.show, .color-splash-panel.show, .slim-face-panel.show, .big-eye-panel.show, .makeup-panel.show,
+        .face-swap-panel.show, .skeleton-panel.show, .lens-blur-panel.show, .motion-blur-panel.show, .warp-panel.show,
+        .perspective-panel.show, .distort-panel.show, .card-panel.show, .logo-panel.show, .cinema-panel.show, .film-panel.show,
+        .vintage-panel.show, .lut-panel.show, .color-grade-panel.show, .split-tone-panel.show, .eyedropper-panel.show,
+        .gif-panel.show, .level-panel.show { display: block; }
+        
         /* 工具提示 */
         .tool-tip {
             background: var(--bg-card);
@@ -1994,12 +2017,14 @@
         
         /* ===== 使用說明面板樣式 ===== */
         .help-panel {
+            display: none;
             background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99,102,241,0.1) 100%);
             border-radius: 20px;
             padding: 20px;
             margin-top: 15px;
             border: 1px solid var(--border);
         }
+        .help-panel.show { display: block; }
         .help-title {
             font-size: 20px;
             font-weight: bold;
@@ -2126,14 +2151,19 @@
         
         /* ===== 更多面板樣式 ===== */
         .layer-panel, .liquify-panel, .curve-panel, .level-panel, .histogram-panel,
-        .colorbalance-panel, .selectivecolor-panel, .photofilter-panel, .lensblur-panel,
-        .motionblur-panel, .perspective-panel, .distort-panel, .warp-panel, .meme-panel,
+        .color-balance-panel, .selective-color-panel, .photo-filter-panel, .lens-blur-panel,
+        .motion-blur-panel, .perspective-panel, .distort-panel, .warp-panel, .meme-panel,
         .poster-panel, .card-panel, .banner-panel, .avatar-panel, .logo-panel, .gif-panel,
-        .palette-panel, .eyedropper-adv-panel, .guide-panel, .align-panel, .path-panel,
-        .channel-panel, .slimface-panel, .bigeye-panel, .makeup-panel, .splittone-panel,
-        .colorgrade-panel, .lut-panel, .vintage-panel, .film-panel, .cinema-panel,
-        .print-panel, .share-panel, .cloud-panel, .shortcut-panel, .help-panel,
-        .colorsplash-panel, .dotart-panel {
+        .palette-panel, .eyedropper-panel, .guide-panel, .align-panel, .path-panel,
+        .channel-panel, .slim-face-panel, .big-eye-panel, .makeup-panel, .split-tone-panel,
+        .color-grade-panel, .lut-panel, .vintage-panel, .film-panel, .cinema-panel,
+        .print-panel, .share-panel, .cloud-panel, .shortcut-panel,
+        .color-splash-panel, .dot-art-panel, .face-swap-panel, .skeleton-panel,
+        .levels-panel, .hsl-panel, .text-panel, .download-panel,
+        .chart-panel, .diagram-panel, .timeline-panel, .infographic-panel,
+        .businesscard-panel, .invoice-panel, .certificate-panel, .badge-panel,
+        .thumbnail-panel, .cover-panel, .mockup-panel, .colorpalette-panel,
+        .aienhance-panel, .aistyle-panel {
             display: none;
             background: var(--bg-card);
             border-radius: 15px;
@@ -2142,16 +2172,22 @@
             border: 1px solid var(--border);
         }
         .layer-panel.show, .liquify-panel.show, .curve-panel.show, .level-panel.show,
-        .histogram-panel.show, .colorbalance-panel.show, .selectivecolor-panel.show,
-        .photofilter-panel.show, .lensblur-panel.show, .motionblur-panel.show,
+        .histogram-panel.show, .color-balance-panel.show, .selective-color-panel.show,
+        .photo-filter-panel.show, .lens-blur-panel.show, .motion-blur-panel.show,
         .perspective-panel.show, .distort-panel.show, .warp-panel.show, .meme-panel.show,
         .poster-panel.show, .card-panel.show, .banner-panel.show, .avatar-panel.show,
-        .logo-panel.show, .gif-panel.show, .palette-panel.show, .eyedropper-adv-panel.show,
+        .logo-panel.show, .gif-panel.show, .palette-panel.show, .eyedropper-panel.show,
         .guide-panel.show, .align-panel.show, .path-panel.show, .channel-panel.show,
-        .slimface-panel.show, .bigeye-panel.show, .makeup-panel.show, .splittone-panel.show,
-        .colorgrade-panel.show, .lut-panel.show, .vintage-panel.show, .film-panel.show,
+        .slim-face-panel.show, .big-eye-panel.show, .makeup-panel.show, .split-tone-panel.show,
+        .color-grade-panel.show, .lut-panel.show, .vintage-panel.show, .film-panel.show,
         .cinema-panel.show, .print-panel.show, .share-panel.show, .cloud-panel.show,
-        .shortcut-panel.show, .help-panel.show, .colorsplash-panel.show, .dotart-panel.show { display: block; }
+        .shortcut-panel.show, .color-splash-panel.show, .dot-art-panel.show,
+        .face-swap-panel.show, .skeleton-panel.show, .levels-panel.show, .hsl-panel.show,
+        .text-panel.show, .download-panel.show, .chart-panel.show, .diagram-panel.show,
+        .timeline-panel.show, .infographic-panel.show, .businesscard-panel.show,
+        .invoice-panel.show, .certificate-panel.show, .badge-panel.show,
+        .thumbnail-panel.show, .cover-panel.show, .mockup-panel.show,
+        .colorpalette-panel.show, .aienhance-panel.show, .aistyle-panel.show { display: block; }
         
         /* 圖層面板 */
         .layer-list {
