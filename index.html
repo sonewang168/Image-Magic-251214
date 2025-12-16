@@ -213,11 +213,40 @@
             gap: 4px;
             transition: all 0.2s;
             white-space: nowrap;
+            position: relative;
         }
-        .tool-btn:hover, .tool-btn.active {
+        .tool-btn:hover {
             background: var(--primary);
             border-color: var(--primary);
             transform: scale(1.05);
+        }
+        .tool-btn.active {
+            background: var(--primary);
+            border-color: var(--primary-light);
+            transform: scale(1.05);
+            box-shadow: 0 0 12px var(--primary), 0 0 24px rgba(139, 92, 246, 0.4);
+            animation: toolPulse 1.5s ease-in-out infinite;
+        }
+        .tool-btn.active::after {
+            content: '✓';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 16px;
+            height: 16px;
+            background: var(--success);
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        @keyframes toolPulse {
+            0%, 100% { box-shadow: 0 0 12px var(--primary), 0 0 24px rgba(139, 92, 246, 0.4); }
+            50% { box-shadow: 0 0 18px var(--primary), 0 0 36px rgba(139, 92, 246, 0.6); }
         }
         .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
         .tool-btn .icon { font-size: 14px; }
@@ -414,6 +443,47 @@
             gap: 5px;
         }
         #canvasInfo::before { content: '📐 '; }
+        
+        /* 工具狀態指示器 */
+        .tool-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            animation: toolStatusPulse 2s ease-in-out infinite;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+        }
+        @keyframes toolStatusPulse {
+            0%, 100% { box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4); }
+            50% { box-shadow: 0 2px 16px rgba(139, 92, 246, 0.7); }
+        }
+        .tool-status-icon { font-size: 14px; }
+        .tool-status-name { white-space: nowrap; }
+        .tool-status-cancel {
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-left: 2px;
+        }
+        .tool-status-cancel:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.1);
+        }
+        
         #zoomInfo { 
             cursor: pointer; 
             padding: 4px 8px;
@@ -4735,6 +4805,11 @@
                 <div class="canvas-wrapper" id="canvasWrapper">
                     <div class="canvas-info-bar">
                         <span id="canvasInfo">0 x 0</span>
+                        <div class="tool-status" id="toolStatus" style="display:none;">
+                            <span class="tool-status-icon">🔧</span>
+                            <span class="tool-status-name" id="toolStatusName">無</span>
+                            <button class="tool-status-cancel" onclick="cancelCurrentTool()" title="取消工具 (ESC)">✕</button>
+                        </div>
                         <div class="canvas-quick-tools">
                             <button class="quick-btn" id="selectBtn2" onclick="setTool('select')" title="選取">✂️</button>
                             <button class="quick-btn" id="clearBtn2" onclick="clearSelection()" title="清除選取">🧹</button>
@@ -7626,7 +7701,7 @@
             }
         });
         
-        // 監聽 ESC 鍵取消所有工具和放置模式
+        // 監聯 ESC 鍵取消所有工具和放置模式
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 let cancelled = false;
@@ -7634,25 +7709,34 @@
                 // 取消拖曳物件
                 if (currentDragObject) {
                     removeDragObject();
+                    showToast('❌ 放置已取消');
                     cancelled = true;
                 }
                 
                 // 取消當前工具
                 if (currentTool) {
-                    currentTool = null;
-                    document.getElementById('selectBtn')?.classList.remove('active');
-                    document.getElementById('selectBtn2')?.classList.remove('active');
-                    document.getElementById('mosaicBtn')?.classList.remove('active');
-                    document.getElementById('arrowBtn')?.classList.remove('active');
-                    document.getElementById('brushBtn')?.classList.remove('active');
-                    document.getElementById('shapeBtn')?.classList.remove('active');
+                    cancelCurrentTool();
                     cancelled = true;
                 }
                 
-                if (cancelled) {
-                    canvas.style.cursor = 'default';
-                    showToast('🔓 已取消');
+                // 取消選取框
+                if (currentSelection) {
+                    currentSelection = null;
+                    document.getElementById('selectionBox').style.display = 'none';
+                    if (!cancelled) showToast('🔓 選取已取消');
+                    cancelled = true;
                 }
+                
+                // 關閉所有面板
+                if (!cancelled) {
+                    const openPanels = document.querySelectorAll('.panel.show, [class*="-panel"].show');
+                    if (openPanels.length > 0) {
+                        openPanels.forEach(panel => panel.classList.remove('show'));
+                        showToast('🔓 面板已關閉');
+                    }
+                }
+                
+                canvas.style.cursor = 'default';
             }
         });
         
@@ -16748,59 +16832,76 @@
         }
         
         function setTool(tool) {
+            // 工具名稱對照表
+            const toolNames = {
+                'select': '✂️ 選取',
+                'mosaic': '🔲 馬賽克',
+                'arrow': '➡️ 箭頭',
+                'brush': '🖌️ 畫筆',
+                'shape': '⭕ 形狀',
+                'eyedropperAdv': '💉 取色器',
+                'lasso': '🔗 套索',
+                'magicWand': '🪄 魔術棒',
+                'penTool': '🖊️ 鋼筆'
+            };
+            
+            // 所有工具按鈕 ID
+            const toolBtnIds = [
+                'selectBtn', 'selectBtn2', 'mosaicBtn', 'arrowBtn', 'brushBtn',
+                'shapeBtn', 'eyeDropperAdvBtn', 'lassoBtn', 'magicWandBtn', 'penToolBtn'
+            ];
+            
             // Toggle 切換：再點一次取消
             if (currentTool === tool) {
-                currentTool = null;
-                document.getElementById('selectBtn')?.classList.remove('active');
-                document.getElementById('mosaicBtn')?.classList.remove('active');
-                document.getElementById('arrowBtn')?.classList.remove('active');
-                document.getElementById('brushBtn')?.classList.remove('active');
-                document.getElementById('shapeBtn')?.classList.remove('active');
-                document.getElementById('selectBtn2')?.classList.remove('active');
-                document.getElementById('eyeDropperAdvBtn')?.classList.remove('active');
-                document.getElementById('lassoBtn')?.classList.remove('active');
-                document.getElementById('magicWandBtn')?.classList.remove('active');
-                document.getElementById('penToolBtn')?.classList.remove('active');
-                canvas.style.cursor = 'default';
-                // 清除鋼筆路徑
-                if (tool === 'penTool') {
-                    penPoints = [];
-                }
-                showToast('🔓 工具已取消');
+                cancelCurrentTool();
                 return;
             }
             
             currentTool = tool;
             
             // 更新所有工具按鈕狀態
-            document.getElementById('selectBtn')?.classList.toggle('active', tool === 'select');
-            document.getElementById('selectBtn2')?.classList.toggle('active', tool === 'select');
-            document.getElementById('mosaicBtn')?.classList.toggle('active', tool === 'mosaic');
-            document.getElementById('arrowBtn')?.classList.toggle('active', tool === 'arrow');
-            document.getElementById('brushBtn')?.classList.toggle('active', tool === 'brush');
-            document.getElementById('shapeBtn')?.classList.toggle('active', tool === 'shape');
-            document.getElementById('eyeDropperAdvBtn')?.classList.toggle('active', tool === 'eyedropperAdv');
-            document.getElementById('lassoBtn')?.classList.toggle('active', tool === 'lasso');
-            document.getElementById('magicWandBtn')?.classList.toggle('active', tool === 'magicWand');
-            document.getElementById('penToolBtn')?.classList.toggle('active', tool === 'penTool');
+            toolBtnIds.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    const isActive = (id === 'selectBtn' || id === 'selectBtn2') ? tool === 'select' :
+                                    id === 'mosaicBtn' ? tool === 'mosaic' :
+                                    id === 'arrowBtn' ? tool === 'arrow' :
+                                    id === 'brushBtn' ? tool === 'brush' :
+                                    id === 'shapeBtn' ? tool === 'shape' :
+                                    id === 'eyeDropperAdvBtn' ? tool === 'eyedropperAdv' :
+                                    id === 'lassoBtn' ? tool === 'lasso' :
+                                    id === 'magicWandBtn' ? tool === 'magicWand' :
+                                    id === 'penToolBtn' ? tool === 'penTool' : false;
+                    btn.classList.toggle('active', isActive);
+                }
+            });
             
+            // 更新游標
             const cursorTools = ['select', 'mosaic', 'arrow', 'brush', 'shape', 'eyedropperAdv', 'lasso', 'magicWand', 'penTool'];
             canvas.style.cursor = cursorTools.includes(tool) ? 'crosshair' : 'default';
             
-            // 顯示提示
+            // 更新工具狀態指示器
+            const toolStatus = document.getElementById('toolStatus');
+            const toolStatusName = document.getElementById('toolStatusName');
+            if (toolStatus && toolStatusName) {
+                toolStatus.style.display = 'flex';
+                toolStatusName.textContent = toolNames[tool] || tool;
+            }
+            
+            // 顯示提示（含 ESC 取消提示）
             const tips = {
-                'select': '✂️ 拖曳選取區域（再點一次取消）',
-                'mosaic': '🔲 拖曳打馬賽克（再點一次取消）',
-                'arrow': '➡️ 拖曳畫箭頭（再點一次取消）',
-                'brush': '🖌️ 在畫布上繪製（再點一次取消）',
-                'shape': '⭕ 拖曳繪製形狀（再點一次取消）',
+                'select': '✂️ 拖曳選取區域',
+                'mosaic': '🔲 拖曳打馬賽克',
+                'arrow': '➡️ 拖曳畫箭頭',
+                'brush': '🖌️ 在畫布上繪製',
+                'shape': '⭕ 拖曳繪製形狀',
                 'eyedropperAdv': '💉 點擊畫布取色',
                 'lasso': '🔗 拖曳繪製選取區域',
                 'magicWand': '🪄 點擊選取相似顏色區域',
-                'penTool': '🖊️ 點擊添加錨點，雙擊完成路徑'
+                'penTool': '🖊️ 點擊添加錨點，雙擊完成'
             };
             if (tips[tool]) {
-                showToast(tips[tool]);
+                showToast(tips[tool] + ' | 再點一次或按 ESC 取消');
             }
             
             // 重置箭頭起點
@@ -16812,6 +16913,39 @@
             if (tool === 'penTool') {
                 penPoints = [];
             }
+        }
+        
+        // 取消當前工具
+        function cancelCurrentTool() {
+            if (!currentTool) return;
+            
+            const prevTool = currentTool;
+            currentTool = null;
+            
+            // 移除所有工具按鈕的 active 狀態
+            const toolBtnIds = [
+                'selectBtn', 'selectBtn2', 'mosaicBtn', 'arrowBtn', 'brushBtn',
+                'shapeBtn', 'eyeDropperAdvBtn', 'lassoBtn', 'magicWandBtn', 'penToolBtn'
+            ];
+            toolBtnIds.forEach(id => {
+                document.getElementById(id)?.classList.remove('active');
+            });
+            
+            // 重置游標
+            canvas.style.cursor = 'default';
+            
+            // 隱藏工具狀態指示器
+            const toolStatus = document.getElementById('toolStatus');
+            if (toolStatus) {
+                toolStatus.style.display = 'none';
+            }
+            
+            // 清除鋼筆路徑
+            if (prevTool === 'penTool') {
+                penPoints = [];
+            }
+            
+            showToast('🔓 工具已取消');
         }
         
         // ===== 鋼筆工具 =====
