@@ -6138,9 +6138,9 @@
                 <!-- 色彩分析面板 -->
                 <div class="colorpalette-panel" id="colorPalettePanel">
                     <div class="panel-title">🎨 色彩分析</div>
-                    <div class="palette-display" id="colorPaletteDisplay"></div>
-                    <button class="wm-action-btn add" onclick="extractPalette()">🔄 重新分析</button>
-                    <div class="palette-info">點擊顏色複製色碼</div>
+                    <div class="palette-display" id="colorPaletteDisplay" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:10px;"></div>
+                    <button class="wm-action-btn add" onclick="analyzeColors()">🔄 重新分析</button>
+                    <small style="color:var(--text-secondary);font-size:10px;display:block;margin-top:8px;">💡 點擊顏色複製色碼</small>
                 </div>
                 
                 <!-- AI 增強面板 -->
@@ -9394,6 +9394,10 @@
         let isDrawing = false;
         let lastX = 0, lastY = 0;
         
+        // ===== 套索工具 =====
+        let lassoPoints = [];
+        let isLassoing = false;
+        
         function showBrushPanel() {
             const panel = document.getElementById('brushPanel');
             const isShowing = panel.classList.contains('show');
@@ -12271,44 +12275,8 @@
         // ===== 調色盤 =====
         function showColorPalettePanel() {
             togglePanel('colorPalettePanel', 'colorPaletteBtn');
-        }
-        
-        function extractPalette() {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const colors = {};
-            
-            for (let i = 0; i < imageData.data.length; i += 40) {
-                const r = Math.round(imageData.data[i] / 32) * 32;
-                const g = Math.round(imageData.data[i+1] / 32) * 32;
-                const b = Math.round(imageData.data[i+2] / 32) * 32;
-                const key = `${r},${g},${b}`;
-                colors[key] = (colors[key] || 0) + 1;
-            }
-            
-            const sorted = Object.entries(colors).sort((a, b) => b[1] - a[1]).slice(0, 6);
-            const palette = sorted.map(([c]) => {
-                const [r, g, b] = c.split(',').map(Number);
-                return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
-            });
-            
-            loadPalette(palette);
-        }
-        
-        function loadPalette(colors) {
-            const container = document.getElementById('paletteColors');
-            if (!container) return;
-            container.innerHTML = '';
-            
-            colors.forEach(color => {
-                const div = document.createElement('div');
-                div.className = 'palette-color';
-                div.style.cssText = `display:inline-block;width:40px;height:40px;background:${color};border-radius:8px;margin:5px;cursor:pointer;`;
-                div.onclick = () => {
-                    navigator.clipboard.writeText(color);
-                    showToast('📋 已複製 ' + color);
-                };
-                container.appendChild(div);
-            });
+            // 自動分析顏色
+            setTimeout(analyzeColors, 100);
         }
         
         // ===== 進階取色器 =====
@@ -15362,6 +15330,11 @@
         }
         
         function analyzeColors() {
+            if (!currentImage && canvas.width === 300) {
+                showToast('⚠️ 請先載入圖片');
+                return;
+            }
+            
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
             const colorCounts = {};
@@ -15382,18 +15355,23 @@
                 .slice(0, 8)
                 .map(([key]) => {
                     const [r, g, b] = key.split(',').map(Number);
-                    return `rgb(${r},${g},${b})`;
+                    const hex = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+                    return { rgb: `rgb(${r},${g},${b})`, hex: hex };
                 });
             
             // 顯示色彩
             const container = document.getElementById('colorPaletteDisplay');
             if (container) {
-                container.innerHTML = sortedColors.map(color => `
-                    <div class="palette-color" style="background:${color}" onclick="copyColorToClipboard('${color}')" title="${color}"></div>
+                container.innerHTML = sortedColors.map(c => `
+                    <div onclick="copyColorToClipboard('${c.hex}')" title="${c.hex}" style="
+                        width:50px;height:50px;background:${c.rgb};border-radius:8px;cursor:pointer;
+                        border:3px solid rgba(255,255,255,0.3);box-shadow:0 2px 8px rgba(0,0,0,0.3);
+                        transition:transform 0.2s;
+                    " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"></div>
                 `).join('');
             }
             
-            showToast('🎨 色彩分析完成');
+            showToast('🎨 已分析 ' + sortedColors.length + ' 個主要顏色');
         }
         
         function copyColorToClipboard(color) {
@@ -15805,6 +15783,14 @@
                 return;
             }
             
+            // 套索工具
+            if (currentTool === 'lasso') {
+                isLassoing = true;
+                lassoPoints = [coords];
+                saveHistory();
+                return;
+            }
+            
             // 形狀工具
             if (currentTool === 'shape') {
                 isSelecting = true;
@@ -15843,6 +15829,14 @@
                 return;
             }
             
+            // 套索繪製
+            if (currentTool === 'lasso' && isLassoing) {
+                lassoPoints.push(coords);
+                // 即時繪製套索路徑
+                drawLassoPath();
+                return;
+            }
+            
             // 形狀預覽（可選）
             if (currentTool === 'shape' && isSelecting) {
                 selectionEnd = coords;
@@ -15854,12 +15848,38 @@
             updateSelectionBox();
         }
         
+        function drawLassoPath() {
+            if (lassoPoints.length < 2) return;
+            
+            // 繪製虛線路徑
+            ctx.save();
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(lassoPoints[0].x, lassoPoints[0].y);
+            for (let i = 1; i < lassoPoints.length; i++) {
+                ctx.lineTo(lassoPoints[i].x, lassoPoints[i].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+        
         function endSelection(e) {
             const coords = getCanvasCoords(e);
             
             // 畫筆結束
             if (currentTool === 'brush' && isDrawing) {
                 isDrawing = false;
+                return;
+            }
+            
+            // 套索完成
+            if (currentTool === 'lasso' && isLassoing) {
+                isLassoing = false;
+                if (lassoPoints.length > 2) {
+                    completeLassoSelection();
+                }
                 return;
             }
             
@@ -15906,6 +15926,43 @@
                 currentSelection = null;
                 document.getElementById('selectionBox').style.display = 'none';
             }
+        }
+        
+        function completeLassoSelection() {
+            // 計算套索區域的邊界框
+            const xs = lassoPoints.map(p => p.x);
+            const ys = lassoPoints.map(p => p.y);
+            const minX = Math.min(...xs);
+            const minY = Math.min(...ys);
+            const maxX = Math.max(...xs);
+            const maxY = Math.max(...ys);
+            
+            // 儲存選取區域
+            currentSelection = {
+                x: minX,
+                y: minY,
+                w: maxX - minX,
+                h: maxY - minY,
+                isLasso: true,
+                points: [...lassoPoints]
+            };
+            
+            // 繪製封閉路徑
+            ctx.save();
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(lassoPoints[0].x, lassoPoints[0].y);
+            for (let i = 1; i < lassoPoints.length; i++) {
+                ctx.lineTo(lassoPoints[i].x, lassoPoints[i].y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+            
+            showToast(`🔗 套索選取完成（${lassoPoints.length} 點）`);
+            lassoPoints = [];
         }
         
         // 畫筆繪製
