@@ -566,24 +566,38 @@
             position: absolute;
             cursor: move;
             pointer-events: auto;
-            border: 2px dashed var(--primary);
-            border-radius: 4px;
-            background: rgba(99, 102, 241, 0.1);
+            border: 3px dashed var(--primary);
+            border-radius: 8px;
+            background: rgba(99, 102, 241, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
             user-select: none;
             touch-action: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 30px rgba(139, 92, 246, 0.3);
             animation: dragPulse 1.5s infinite;
+            transition: box-shadow 0.2s;
+        }
+        .drag-object::before {
+            content: '⊕';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: var(--primary);
+            opacity: 0.3;
+            pointer-events: none;
         }
         .drag-object:hover {
             border-color: var(--accent);
-            box-shadow: 0 0 20px var(--primary);
+            box-shadow: 0 0 30px var(--primary), 0 8px 25px rgba(0,0,0,0.5);
         }
         .drag-object.dragging {
-            opacity: 0.8;
-            transform: scale(1.02);
+            opacity: 0.9;
+            transform: scale(1.05);
+            border-style: solid;
+            box-shadow: 0 0 40px var(--accent), 0 10px 30px rgba(0,0,0,0.5);
         }
         .drag-object img {
             max-width: 100%;
@@ -600,30 +614,49 @@
         }
         .drag-controls {
             display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 1px solid var(--border);
+        }
+        .drag-controls.show { display: flex; }
+        .drag-controls-row {
+            display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
-            padding: 10px;
-            background: var(--bg-card);
-            border-radius: 10px;
-            margin-top: 10px;
+            width: 100%;
         }
-        .drag-controls.show { display: flex; }
         .drag-hint {
             font-size: 12px;
             color: var(--text-secondary);
+            text-align: center;
+        }
+        .drag-position-info {
+            font-size: 11px;
+            color: var(--primary);
+            background: var(--bg-input);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: monospace;
         }
         .drag-btn {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.2s;
+            font-weight: bold;
         }
         .drag-btn.confirm {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--success), #16a34a);
             color: white;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
         }
         .drag-btn.cancel {
             background: var(--bg-input);
@@ -631,6 +664,43 @@
         }
         .drag-btn:hover { transform: scale(1.05); }
         .drag-btn:active { transform: scale(0.95); }
+        
+        /* 微調控制 */
+        .drag-nudge-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .drag-nudge-row {
+            display: flex;
+            gap: 2px;
+        }
+        .drag-nudge-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .drag-nudge-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .drag-nudge-btn:active {
+            transform: scale(0.9);
+        }
+        .drag-nudge-btn.center {
+            background: var(--primary);
+            color: white;
+        }
         
         /* ===== AI 分析面板 ===== */
         .ai-panel {
@@ -4829,9 +4899,32 @@
                         <div class="selection-box" id="selectionBox"></div>
                     </div>
                     <div class="drag-controls" id="dragControls">
-                        <span class="drag-hint">🎯 拖曳調整位置</span>
-                        <button class="drag-btn confirm" onclick="confirmDragObject()">✅ 確認</button>
-                        <button class="drag-btn cancel" onclick="cancelDragObject()">❌ 取消</button>
+                        <div class="drag-controls-row">
+                            <span class="drag-hint">🎯 拖曳物件調整位置，或使用方向鍵微調</span>
+                        </div>
+                        <div class="drag-controls-row">
+                            <span class="drag-position-info" id="dragPositionInfo">X: 0, Y: 0</span>
+                        </div>
+                        <div class="drag-controls-row">
+                            <div class="drag-nudge-controls">
+                                <div class="drag-nudge-row">
+                                    <button class="drag-nudge-btn" onclick="nudgeDragObject(0, -10)" title="上移 10px">▲</button>
+                                </div>
+                                <div class="drag-nudge-row">
+                                    <button class="drag-nudge-btn" onclick="nudgeDragObject(-10, 0)" title="左移 10px">◀</button>
+                                    <button class="drag-nudge-btn center" onclick="centerDragObject()" title="置中">⊕</button>
+                                    <button class="drag-nudge-btn" onclick="nudgeDragObject(10, 0)" title="右移 10px">▶</button>
+                                </div>
+                                <div class="drag-nudge-row">
+                                    <button class="drag-nudge-btn" onclick="nudgeDragObject(0, 10)" title="下移 10px">▼</button>
+                                </div>
+                            </div>
+                            <button class="drag-btn confirm" onclick="confirmDragObject()">✅ 確認放置</button>
+                            <button class="drag-btn cancel" onclick="cancelDragObject()">❌ 取消</button>
+                        </div>
+                        <div class="drag-controls-row">
+                            <small style="color:var(--text-secondary);font-size:10px;">💡 按住 Shift + 方向鍵可微調 1px</small>
+                        </div>
                     </div>
                     <div class="zoom-hint">💡 雙指縮放 | 滾輪縮放 | 雙擊重置</div>
                 </div>
@@ -7287,7 +7380,7 @@
                     <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;">
                         <p>🎩 <b>圖文魔術師 V2.0 終極版</b></p>
                         <p>📝 史上最強瀏覽器圖片編輯器</p>
-                        <p>🔧 121 個工具按鈕 | 17,800+ 行代碼</p>
+                        <p>🔧 121 個工具按鈕 | 18,000+ 行代碼</p>
                         <p>📄 支援 PNG / JPG / WebP / PDF</p>
                         <p>🤖 整合 Gemini + Groq 雙 AI 引擎</p>
                         <p>💬 可推送到 LINE 即時分享</p>
@@ -9376,7 +9469,10 @@
             // 顯示控制按鈕
             document.getElementById('dragControls').classList.add('show');
             
-            showToast('🎯 拖曳到想要的位置，點擊確認');
+            // 更新位置顯示
+            setTimeout(updateDragPositionInfo, 10);
+            
+            showToast('🎯 自由拖曳調整位置 | 方向鍵微調 | Enter 確認 | ESC 取消');
         }
         
         function startDragObject(e) {
@@ -9419,6 +9515,9 @@
             
             currentDragObject.style.left = newX + 'px';
             currentDragObject.style.top = newY + 'px';
+            
+            // 即時更新位置顯示
+            updateDragPositionInfo();
         }
         
         function moveDragObjectTouch(e) {
@@ -9434,6 +9533,9 @@
             
             currentDragObject.style.left = newX + 'px';
             currentDragObject.style.top = newY + 'px';
+            
+            // 即時更新位置顯示
+            updateDragPositionInfo();
         }
         
         function stopDragObject() {
@@ -9666,6 +9768,110 @@
                 dragControls.classList.remove('show');
             }
         }
+        
+        // 微調拖曳物件位置
+        function nudgeDragObject(dx, dy) {
+            if (!currentDragObject) return;
+            
+            const currentLeft = parseFloat(currentDragObject.style.left) || 0;
+            const currentTop = parseFloat(currentDragObject.style.top) || 0;
+            
+            currentDragObject.style.left = (currentLeft + dx) + 'px';
+            currentDragObject.style.top = (currentTop + dy) + 'px';
+            
+            updateDragPositionInfo();
+        }
+        
+        // 置中拖曳物件
+        function centerDragObject() {
+            if (!currentDragObject) return;
+            
+            const container = document.getElementById('canvasContainer');
+            const canvasRect = canvas.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            const canvasOffsetX = canvasRect.left - containerRect.left + container.scrollLeft;
+            const canvasOffsetY = canvasRect.top - containerRect.top + container.scrollTop;
+            
+            const objWidth = parseFloat(currentDragObject.style.width) || 100;
+            const objHeight = parseFloat(currentDragObject.style.height) || 100;
+            
+            const centerX = canvasOffsetX + (canvasRect.width - objWidth) / 2;
+            const centerY = canvasOffsetY + (canvasRect.height - objHeight) / 2;
+            
+            currentDragObject.style.left = centerX + 'px';
+            currentDragObject.style.top = centerY + 'px';
+            
+            updateDragPositionInfo();
+            showToast('⊕ 已置中');
+        }
+        
+        // 更新位置顯示
+        function updateDragPositionInfo() {
+            if (!currentDragObject) return;
+            
+            const container = document.getElementById('canvasContainer');
+            const canvasRect = canvas.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            const canvasOffsetX = canvasRect.left - containerRect.left + container.scrollLeft;
+            const canvasOffsetY = canvasRect.top - containerRect.top + container.scrollTop;
+            
+            const objLeft = parseFloat(currentDragObject.style.left) || 0;
+            const objTop = parseFloat(currentDragObject.style.top) || 0;
+            const objWidth = parseFloat(currentDragObject.style.width) || 0;
+            const objHeight = parseFloat(currentDragObject.style.height) || 0;
+            
+            // 計算在畫布上的實際位置
+            const scaleX = canvas.width / canvasRect.width;
+            const scaleY = canvas.height / canvasRect.height;
+            
+            const canvasX = Math.round((objLeft + objWidth/2 - canvasOffsetX) * scaleX);
+            const canvasY = Math.round((objTop + objHeight/2 - canvasOffsetY) * scaleY);
+            
+            const posInfo = document.getElementById('dragPositionInfo');
+            if (posInfo) {
+                posInfo.textContent = `X: ${canvasX}, Y: ${canvasY}`;
+            }
+        }
+        
+        // 鍵盤控制拖曳物件
+        document.addEventListener('keydown', (e) => {
+            if (!currentDragObject) return;
+            
+            // 方向鍵控制
+            const step = e.shiftKey ? 1 : 10; // Shift 按住時微調 1px
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    e.preventDefault();
+                    nudgeDragObject(0, -step);
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    nudgeDragObject(0, step);
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    nudgeDragObject(-step, 0);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    nudgeDragObject(step, 0);
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    confirmDragObject();
+                    break;
+                case 'c':
+                case 'C':
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        centerDragObject();
+                    }
+                    break;
+            }
+        });
         
         // ===== 旋轉翻轉 =====
         function rotateImage90() {
