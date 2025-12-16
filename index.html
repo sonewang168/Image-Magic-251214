@@ -6605,19 +6605,22 @@
                 <div class="logo-panel" id="logoPanel">
                     <div class="panel-title">🏢 Logo 製作</div>
                     <div class="logo-options">
-                        <input type="text" id="logoText" placeholder="輸入文字..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;">
+                        <input type="text" id="logoText" placeholder="輸入 Logo 文字..." value="LOGO" style="width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;background:var(--bg-input);color:var(--text-primary);font-size:16px;">
                         <div class="wm-option">
                             <label>字體樣式</label>
-                            <select id="logoFont" style="padding:8px;border-radius:4px;width:100%;">
+                            <select id="logoFont" style="padding:8px;border-radius:4px;width:100%;background:var(--bg-input);color:var(--text-primary);">
                                 <option value="bold">粗體</option>
                                 <option value="elegant">優雅</option>
                                 <option value="tech">科技</option>
                                 <option value="handwrite">手寫</option>
                             </select>
                         </div>
-                        <div style="display:flex;gap:10px;margin-top:10px;">
-                            <input type="color" id="logoColor1" value="#667eea" style="flex:1;height:40px;border:none;cursor:pointer;">
-                            <input type="color" id="logoColor2" value="#764ba2" style="flex:1;height:40px;border:none;cursor:pointer;">
+                        <div style="margin-top:10px;">
+                            <label style="font-size:12px;color:var(--text-secondary);">漸層顏色</label>
+                            <div style="display:flex;gap:10px;margin-top:5px;">
+                                <input type="color" id="logoColor1" value="#667eea" style="flex:1;height:40px;border:none;cursor:pointer;border-radius:4px;">
+                                <input type="color" id="logoColor2" value="#764ba2" style="flex:1;height:40px;border:none;cursor:pointer;border-radius:4px;">
+                            </div>
                         </div>
                     </div>
                     <button class="wm-action-btn add" onclick="createLogo()" style="margin-top:10px;">🏢 產生 Logo</button>
@@ -12602,8 +12605,15 @@
         }
         
         function createLogo() {
+            const text = document.getElementById('logoText')?.value?.trim();
+            
+            if (!text) {
+                showToast('⚠️ 請輸入 Logo 文字');
+                return;
+            }
+            
             saveHistory();
-            const text = document.getElementById('logoText')?.value || 'LOGO';
+            
             const font = document.getElementById('logoFont')?.value || 'bold';
             const color1 = document.getElementById('logoColor1')?.value || '#667eea';
             const color2 = document.getElementById('logoColor2')?.value || '#764ba2';
@@ -12611,8 +12621,9 @@
             canvas.width = 600;
             canvas.height = 300;
             
-            // 透明背景
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 白色背景（可見）
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // 建立漸層
             const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
@@ -12643,7 +12654,7 @@
             
             ctx.shadowBlur = 0;
             
-            showToast('🏢 Logo 已產生');
+            showToast('🏢 Logo 已產生！');
         }
         
         function generateLogo() {
@@ -16307,8 +16318,8 @@
         function getCanvasCoords(e) {
             const rect = canvas.getBoundingClientRect();
             return {
-                x: (e.clientX - rect.left) * (canvas.width / rect.width),
-                y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                x: Math.round((e.clientX - rect.left) * (canvas.width / rect.width)),
+                y: Math.round((e.clientY - rect.top) * (canvas.height / rect.height))
             };
         }
         
@@ -16671,6 +16682,22 @@
         
         // ===== 魔術棒選取 =====
         function magicWandSelect(startX, startY, tolerance = 32) {
+            // 確保座標為整數
+            startX = Math.round(startX);
+            startY = Math.round(startY);
+            
+            // 檢查是否有圖片
+            if (!currentImage && canvas.width === 300) {
+                showToast('⚠️ 請先載入圖片');
+                return;
+            }
+            
+            // 檢查座標範圍
+            if (startX < 0 || startX >= canvas.width || startY < 0 || startY >= canvas.height) {
+                showToast('⚠️ 請點擊圖片區域');
+                return;
+            }
+            
             saveHistory();
             
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -16684,39 +16711,58 @@
             const targetG = data[startIdx + 1];
             const targetB = data[startIdx + 2];
             
-            // 標記已訪問
-            const visited = new Set();
+            // 標記已訪問（使用 Uint8Array 更快）
+            const visited = new Uint8Array(width * height);
             const selected = [];
             const queue = [[startX, startY]];
             
-            while (queue.length > 0) {
+            // 使用較大的容差
+            const actualTolerance = tolerance * 3;
+            
+            while (queue.length > 0 && selected.length < 500000) {  // 限制最大選取數
                 const [x, y] = queue.shift();
-                const key = `${x},${y}`;
+                const pixelIdx = y * width + x;
                 
-                if (visited.has(key) || x < 0 || x >= width || y < 0 || y >= height) continue;
-                visited.add(key);
+                if (visited[pixelIdx] || x < 0 || x >= width || y < 0 || y >= height) continue;
+                visited[pixelIdx] = 1;
                 
-                const idx = (y * width + x) * 4;
+                const idx = pixelIdx * 4;
                 const r = data[idx], g = data[idx + 1], b = data[idx + 2];
                 
                 // 檢查顏色是否相似
                 const diff = Math.abs(r - targetR) + Math.abs(g - targetG) + Math.abs(b - targetB);
-                if (diff <= tolerance * 3) {
+                if (diff <= actualTolerance) {
                     selected.push([x, y]);
-                    queue.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+                    // 只添加未訪問的鄰居
+                    if (x + 1 < width && !visited[pixelIdx + 1]) queue.push([x + 1, y]);
+                    if (x - 1 >= 0 && !visited[pixelIdx - 1]) queue.push([x - 1, y]);
+                    if (y + 1 < height && !visited[pixelIdx + width]) queue.push([x, y + 1]);
+                    if (y - 1 >= 0 && !visited[pixelIdx - width]) queue.push([x, y - 1]);
                 }
             }
             
-            // 標記選中區域（用半透明紅色）
+            if (selected.length === 0) {
+                showToast('⚠️ 沒有選取到像素，請嘗試點擊其他區域');
+                return;
+            }
+            
+            // 標記選中區域（用螞蟻線邊框而非改變顏色）
+            // 先畫邊界
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            // 繪製選取遮罩
+            tempCtx.fillStyle = 'rgba(0, 150, 255, 0.3)';
             selected.forEach(([x, y]) => {
-                const idx = (y * width + x) * 4;
-                data[idx] = Math.min(255, data[idx] + 50);     // 增加紅色
-                data[idx + 1] = Math.max(0, data[idx + 1] - 20);
-                data[idx + 2] = Math.max(0, data[idx + 2] - 20);
+                tempCtx.fillRect(x, y, 1, 1);
             });
             
-            ctx.putImageData(imageData, 0, 0);
-            showToast(`🪄 已選取 ${selected.length} 個像素`);
+            ctx.drawImage(tempCanvas, 0, 0);
+            
+            showToast(`🪄 已選取 ${selected.length.toLocaleString()} 個像素`);
             
             // 儲存選取區域的邊界
             if (selected.length > 0) {
@@ -16725,8 +16771,10 @@
                 currentSelection = {
                     x: Math.min(...xs),
                     y: Math.min(...ys),
-                    width: Math.max(...xs) - Math.min(...xs),
-                    height: Math.max(...ys) - Math.min(...ys)
+                    w: Math.max(...xs) - Math.min(...xs) + 1,
+                    h: Math.max(...ys) - Math.min(...ys) + 1,
+                    isMagicWand: true,
+                    pixels: selected
                 };
             }
         }
