@@ -17026,7 +17026,9 @@
         }
         
         function handleTouchEnd(e) {
-            endSelection(e);
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            endSelection({ clientX: touch.clientX, clientY: touch.clientY });
         }
         
         function getCanvasCoords(e) {
